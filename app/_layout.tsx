@@ -4,10 +4,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
+import { AppTheme } from "@/themes/types";
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { PaperProvider, ThemeProvider } from 'react-native-paper';
-import { LightTheme, DarkTheme } from './themes';
+import { LightTheme, DarkTheme } from '@/themes';
+
 
 export {
   // Catch any errors thrown by the Layout component.
