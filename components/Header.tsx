@@ -3,9 +3,12 @@ import { View, Image, TouchableOpacity } from 'react-native';
 import { useTheme, Text, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { AppTheme } from '@/themes/types';
+import ThemeToggle from './ThemeToggle';
+import { useThemeToggle } from '@/contexts/ThemeContext';
 
 export default function Header() {
   const theme = useTheme<AppTheme>();
+  const { isDark, toggleTheme } = useThemeToggle();
 
   return (
     <>
@@ -28,10 +31,18 @@ export default function Header() {
 
         {/* Right: Icons */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          
+          <TouchableOpacity onPress={toggleTheme} style={{ marginRight: 16 }}>
+            <Ionicons
+              name={isDark ? 'sunny-outline' : 'moon-outline'}
+              size={24}
+              color={theme.colors.onBackground}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity style={{ marginRight: 16 }}>
             <Ionicons name="notifications-outline" size={24} color={theme.colors.onBackground} />
           </TouchableOpacity>
-
           <TouchableOpacity>
             <Image
               source={{ uri: 'https://i.pravatar.cc/40' }}
