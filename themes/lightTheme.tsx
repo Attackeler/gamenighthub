@@ -1,7 +1,8 @@
 import { MD3LightTheme } from "react-native-paper";
+import { AppTheme } from "./types";
 
 
-export const LightTheme = {
+export const LightTheme: AppTheme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
@@ -10,8 +11,10 @@ export const LightTheme = {
     background: '#FFFFFF',
     surface: '#F9F9FC',
     text: '#000000',
-    outline: '#888888',
+    outline: '#cacacaff',
     success: '#32C685',
     divider: '#888888',
+    onCreateButton: '#ffffff',
+    onJoinButton: '#000000',
   },
 };

@@ -11,8 +11,10 @@ export const DarkTheme: AppTheme = {
     background: '#000000',
     surface: '#111111',
     text: '#FFFFFF',
-    outline: '#666666',
+    outline: '#3B82F6',
     success: '#4ADE80',
     divider: '#3B82F6',
+    onCreateButton: '#ffffff',
+    onJoinButton: '#ffffff',
   },
 };
