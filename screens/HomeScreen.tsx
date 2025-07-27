@@ -15,6 +15,7 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
         <View style={{ width: '100%', maxWidth: 700, paddingHorizontal: 16, paddingVertical: 10 }}>
           <Header />
+          {/* Buttons for creating or joining game nights */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
             <Button
               mode="contained"
@@ -46,18 +47,20 @@ export default function HomeScreen() {
               </View>
             </Button>
           </View>
-
-          <Text variant="titleMedium" style={{ marginBottom: 8, fontWeight: 'bold' }}>
-            Active Game Nights
-          </Text>
-          <Modal />
-          <Text variant="titleMedium" style={{ marginTop: 24, marginBottom: 8, fontWeight: 'bold' }}>
+          {/* Sections for active game nights, popular games and recent activity */}
+          <Modal title="Active Game Nights" actionLabel="See All" onActionPress={() => {}}>
+            <Text>Test</Text>
+          </Modal>
+          {/* <Text variant="titleMedium" style={{ marginTop: 24, marginBottom: 8, fontWeight: 'bold' }}>
             Popular Games
-          </Text>
+          </Text> */}
+          <Modal title="Popular Games" actionLabel="See All" onActionPress={() => {}}>
+            <Text>Test</Text>
+          </Modal>
 
-          <Text variant="titleMedium" style={{ marginTop: 24, marginBottom: 8, fontWeight: 'bold' }}>
-            Recent Activity
-          </Text>
+          <Modal title="Recent Activity" actionLabel="See All" onActionPress={() => {}}>
+            <Text>Test</Text>
+          </Modal>
         </View>
       </ScrollView>
     </SafeAreaView >
