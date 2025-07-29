@@ -4,12 +4,14 @@ import {
   Portal,
   Text,
   TextInput,
-  Button,
-  Checkbox,
+  Button, Card,
   useTheme,
+  Modal,
+  Checkbox,
 } from "react-native-paper";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AdvancedCheckbox } from 'react-native-advanced-checkbox';
 
 const games = [
   { id: 1, name: "Activity", duration: "45-75 min", players: "3-16 players" },
@@ -22,17 +24,23 @@ const friends = [
   { id: 2, name: "test", email: "test@test.com" },
 ];
 
-export default function CreateGameNightModal({ visible, onDismiss , onCreate}: { visible: boolean; onDismiss: () => void; onCreate: () => void; }) {
+export default function CreateGameNightModal({
+  visible,
+  onDismiss,
+  onCreate,
+}: {
+  visible: boolean;
+  onDismiss: () => void;
+  onCreate: () => void;
+}) {
   const theme = useTheme();
   const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
-  const [address, setAddress] = useState("");
-  const [maxPlayers, setMaxPlayers] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
   const [invitedFriends, setInvitedFriends] = useState<number[]>([]);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
 
   const toggleGame = (id: number) => {
     setSelectedGames((prev) =>
@@ -46,61 +54,121 @@ export default function CreateGameNightModal({ visible, onDismiss , onCreate}: {
     );
   };
 
+  const handleSubmit = () => {
+    if (!title || !date || !time || !location) {
+      setShowErrorDialog(true);
+      return;
+    }
+
+    onCreate();
+    onDismiss();
+  };
+
+  const renderContent = () => (
+    <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
+      <Text variant="titleMedium" style={{ fontWeight: "bold", marginBottom: 16 }}>
+        Create Game Night
+      </Text>
+
+      <TextInput
+        label="Game Night Title *"
+        value={title}
+        onChangeText={setTitle}
+        mode="outlined"
+        style={{ marginBottom: 12 }}
+      />
+
+      <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+        <TextInput
+          label="Date *"
+          value={date}
+          onChangeText={setDate}
+          mode="outlined"
+          style={{ flex: 1 }}
+        />
+        <TextInput
+          label="Time *"
+          value={time}
+          onChangeText={setTime}
+          mode="outlined"
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      <TextInput
+        label="Location *"
+        value={location}
+        onChangeText={setLocation}
+        mode="outlined"
+        style={{ marginBottom: 12 }}
+      />
+
+      <Text style={{ fontWeight: "bold", marginBottom: 10 }}>Select Games</Text>
+      {games.map((game) => (
+        <View key={game.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10, userSelect: 'none' }}>
+          <AdvancedCheckbox
+            value={selectedGames.includes(game.id) ? true : false}
+            onValueChange={() => toggleGame(game.id)}
+            uncheckedColor={theme.colors.outline}
+            checkedColor={theme.colors.primary}
+          />
+          <Text style={{ marginLeft: 8 }}>{`${game.name}   🕒 ${game.duration}   👥 ${game.players}`}</Text>
+        </View>
+      ))}
+
+      <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>Invite Friends</Text>
+      {friends.map((friend) => (
+        <View key={friend.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10,  userSelect: 'none' }}>
+          <AdvancedCheckbox
+            value={invitedFriends.includes(friend.id) ? true : false}
+            onValueChange={() => toggleFriend(friend.id)}
+            uncheckedColor={theme.colors.outline}
+            checkedColor={theme.colors.primary}
+          />
+
+          <Text style={{ marginLeft: 8 }}>{`${friend.name}   (${friend.email})`}</Text>
+        </View>
+      ))}
+
+      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
+        <Button onPress={onDismiss}>Cancel</Button>
+        <Button mode="contained" style={{ marginLeft: 12 }} onPress={handleSubmit}>
+          Create Game Night
+        </Button>
+      </View>
+    </View>
+  );
+
+
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss} style={{ maxHeight: "90%" }}>
-        <Dialog.ScrollArea>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 16 }}>
-            <Text variant="titleMedium" style={{ fontWeight: "bold", marginBottom: 16 }}>Create Game Night</Text>
+      {Platform.OS === "web" ? (
+        <Dialog visible={visible} onDismiss={onDismiss} style={{ maxWidth: 700, alignSelf: 'center' }}>
+          <Dialog.Content>{renderContent()}</Dialog.Content>
+        </Dialog>
+      ) : (
+        <Modal
+          visible={visible}
+          onDismiss={onDismiss}
+          contentContainerStyle={{
+            marginHorizontal: 16,
+            borderRadius: 20,
+            backgroundColor: theme.colors.elevation.level3,
+            paddingVertical: 16,
+          }}
+        >
+          {renderContent()}
+        </Modal>
+      )}
 
-            <TextInput label="Game Night Title *" value={title} onChangeText={setTitle} mode="outlined" style={{ marginBottom: 12 }} />
-            <TextInput label="Description" value={desc} onChangeText={setDesc} mode="outlined" multiline style={{ marginBottom: 12 }} />
-
-            <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
-              <TextInput label="Date *" value={date} onChangeText={setDate} mode="outlined" style={{ flex: 1 }} />
-              <TextInput label="Time *" value={time} onChangeText={setTime} mode="outlined" style={{ flex: 1 }} />
-            </View>
-
-            <TextInput label="Location *" value={location} onChangeText={setLocation} mode="outlined" style={{ marginBottom: 12 }} />
-            <TextInput label="Address (Optional)" value={address} onChangeText={setAddress} mode="outlined" style={{ marginBottom: 12 }} />
-            <TextInput label="Maximum Players" value={maxPlayers} onChangeText={setMaxPlayers} mode="outlined" style={{ marginBottom: 20 }} />
-
-            <Text style={{ fontWeight: "bold", marginBottom: 10 }}>Select Games</Text>
-            {games.map((game) => (
-              <View
-                key={game.id}
-                style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
-              >
-                <Checkbox
-                  status={selectedGames.includes(game.id) ? "checked" : "unchecked"}
-                  onPress={() => toggleGame(game.id)}
-                />
-                <Text>{`${game.name}   🕒 ${game.duration}   👥 ${game.players}`}</Text>
-              </View>
-            ))}
-
-            <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>Invite Friends</Text>
-            {friends.map((friend) => (
-              <View
-                key={friend.id}
-                style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
-              >
-                <Checkbox
-                  status={invitedFriends.includes(friend.id) ? "checked" : "unchecked"}
-                  onPress={() => toggleFriend(friend.id)}
-                />
-                <Text>{`${friend.name}   (${friend.email})`}</Text>
-              </View>
-            ))}
-
-            <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
-              <Button onPress={onDismiss}>Cancel</Button>
-              <Button mode="contained" style={{ marginLeft: 12 }}>
-                Create Game Night
-              </Button>
-            </View>
-          </ScrollView>
-        </Dialog.ScrollArea>
+      <Dialog visible={showErrorDialog} onDismiss={() => setShowErrorDialog(false)}>
+        <Dialog.Title>Error</Dialog.Title>
+        <Dialog.Content>
+          <Text>Please fill all information required.</Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setShowErrorDialog(false)}>OK</Button>
+        </Dialog.Actions>
       </Dialog>
     </Portal>
   );

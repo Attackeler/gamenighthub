@@ -1,8 +1,10 @@
 // src/screens/HomeScreen.tsx
 import CreateGameNightModal from '@/components/CreateGameNightModal';
+import GameCard from '@/components/GameCard';
 import Header from '@/components/Header';
 import Section from '@/components/Section';
 import ActiveGameNightCard from '@/components/sections/ActiveGameNightCard';
+import NoGameNightCard from '@/components/sections/NoGameNightCard';
 import { AppTheme } from '@/themes/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,14 +12,16 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text, useTheme, TouchableRipple } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { v4 as uuidv4 } from 'uuid';
 
 type GameNight = {
-  id: number;
+  id: string;
   title: string;
   date: string;
   location: string;
   members: string[];
 };
+
 const STORAGE_KEY = 'game_nights';
 
 export default function HomeScreen() {
@@ -32,33 +36,41 @@ export default function HomeScreen() {
       }
     });
   }, []);
+
   const saveGameNights = async (nights: GameNight[]) => {
     setGameNights(nights);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nights));
   };
+
   const handleCreateGameNight = () => {
-    const newId = gameNights.length + 1;
+    const newId = uuidv4();
     const newNight: GameNight = {
       id: newId,
-      title: `Game Night #${newId}`,
+      title: `Game Night ${gameNights.length + 1}`,
       date: new Date().toLocaleString(),
       location: 'New Location',
       members: [
-        `https://i.pravatar.cc/40?u=${newId}`,
-        `https://i.pravatar.cc/40?u=${newId + 1}`,
+        `https://i.pravatar.cc/40?u=${newId}-1`,
+        `https://i.pravatar.cc/40?u=${newId}-2`,
       ],
     };
     const updated = [...gameNights, newNight];
     saveGameNights(updated);
   };
+
+  const handleDeleteGameNight = (id: string) => {
+    const updated = gameNights.filter((item) => item.id !== id);
+    saveGameNights(updated);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-        <View style={{ width: '100%', maxWidth: 700, paddingHorizontal: 16, paddingVertical: 10 }}>
+        <View style={{ width: '100%', maxWidth: 1000, paddingHorizontal: 16, paddingVertical: 10 }}>
           <Header />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
             <TouchableRipple
-              onPress={() => { setModalVisible(false); handleCreateGameNight(); }}
+              onPress={() => { setModalVisible(true); }}
               rippleColor="rgba(255,255,255,0.3)"
               borderless={false}
               style={{
@@ -126,33 +138,31 @@ export default function HomeScreen() {
 
           <Section title="Active Game Nights" actionLabel="See All" onActionPress={() => { }} />
 
-          <ScrollView
-            contentContainerStyle={{ paddingVertical: 8 }}
-            style={{  maxWidth: '100%', height: 400 }}
-          >
-            {gameNights.map((gn) => (
-              <View key={gn.id} style={{ marginRight: 12 }}>
-                <ActiveGameNightCard
-                  title={gn.title}
-                  date={gn.date}
-                  location={gn.location}
-                  members={gn.members}
-                  onMessagePress={() => console.log('message')}
-                  onViewPress={() => console.log('view')}
-                  onDeletePress={() => {
-                    const updated = gameNights.filter((item) => item.id !== gn.id);
-                    setGameNights(updated);
-                    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-                  }}
-                />
-              </View>
-            ))}
-          </ScrollView>
-
+          {gameNights.length === 0 ? (
+            <NoGameNightCard onCreatePress={() => setModalVisible(true)} />
+          ) : (
+            <ScrollView
+              contentContainerStyle={{ paddingVertical: 8 }}
+              style={{ width: '100%', minHeight: 100, maxHeight: 400 }}
+            >
+              {gameNights.map((gn) => (
+                <View key={gn.id} style={{ marginRight: 12 }}>
+                  <ActiveGameNightCard
+                    title={gn.title}
+                    date={gn.date}
+                    location={gn.location}
+                    members={gn.members}
+                    onMessagePress={() => console.log('message')}
+                    onViewPress={() => console.log('view')}
+                    onDeletePress={() => handleDeleteGameNight(gn.id)}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
 
           <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
-          <Text>Test</Text>
-
+          {/* <GameCard game={{ name: "Game 1", description: "Description 1" }} /> */}
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => { }} />
           <Text>Test</Text>
         </View>
