@@ -20,6 +20,7 @@ export default function RootLayoutNav() {
                     contentStyle: { backgroundColor: theme.colors.background, width: '100%', marginHorizontal: 'auto' },
                 }}>
                 <Stack.Screen name="index" />
+                <Stack.Screen name="games" />
             </Stack>
         </ThemeProviderWrapper>
     );

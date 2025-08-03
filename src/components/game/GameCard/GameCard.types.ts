@@ -1,3 +1,5 @@
+export type Page = 'Home' | 'Games';
+
 export type Game = {
   name: string;
   description ?: string;

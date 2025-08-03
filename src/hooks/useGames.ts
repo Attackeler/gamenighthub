@@ -1,14 +1,16 @@
 // hooks/useGames.ts
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase'; 
+import { db } from '@/lib/firebase';
+
 export type Game = {
   id: string;
   name: string;
-  description: string;
+  description?: string;
+  picture: string;
   duration: string;
   players: string;
-  picture: string;
+  page: 'Home' | 'Games';
 };
 
 export function useGames() {
@@ -18,7 +20,18 @@ export function useGames() {
     const fetchGames = async () => {
       if (db) {
         const snapshot = await getDocs(collection(db, 'games'));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Game));
+        const data = snapshot.docs.map((doc) => {
+          const raw = doc.data();
+          return {
+            id: doc.id,
+            name: raw.name,
+            description: raw.description ?? '',
+            picture: raw.picture ?? '',
+            duration: raw.duration ?? '',
+            players: raw.players ?? '',
+            page: (raw.page === 'Home' || raw.page === 'Games') ? raw.page : 'Home',
+          } as Game;
+        });
         setGames(data);
       }
     };

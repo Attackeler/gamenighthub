@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { GameNight } from './HomeScreen.types';
 import { useGameNights } from './HomeScreen.hooks';
 import { useGames } from '@/hooks/useGames';
+import { homeScreenStyles } from './HomeScreen.styles';
 
 export default function HomeScreen() {
   const theme = useTheme<AppTheme>();
@@ -43,26 +44,24 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={[homeScreenStyles.root, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-        <View style={{ width: '100%', maxWidth: 1000, paddingHorizontal: 16 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={homeScreenStyles.contentWrapper}>
+          <View style={homeScreenStyles.buttonRow}>
             <TouchableRipple
               onPress={() => setModalVisible(true)}
               rippleColor="rgba(255,255,255,0.3)"
-              style={{
-                flex: 1,
-                borderRadius: 16,
-                marginRight: 8,
-                backgroundColor: theme.colors.primary,
-                paddingVertical: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={[
+                homeScreenStyles.button,
+                homeScreenStyles.buttonLeft,
+                {
+                  backgroundColor: theme.colors.primary
+                },
+              ]}
             >
               <View style={{ alignItems: 'center' }}>
                 <MaterialCommunityIcons name="plus" size={20} color="white" />
-                <Text style={{ color: theme.colors.onCreateButton, marginTop: 4, fontWeight: '600' }}>
+                <Text style={[homeScreenStyles.text, { color: theme.colors.onCreateButton }]}>
                   Create Game Night
                 </Text>
               </View>
@@ -71,19 +70,15 @@ export default function HomeScreen() {
             <TouchableRipple
               onPress={() => { }}
               rippleColor="rgba(0,0,0,0.1)"
-              style={{
-                flex: 1,
-                borderRadius: 16,
-                marginLeft: 8,
-                backgroundColor: theme.colors.secondary,
-                paddingVertical: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={[
+                homeScreenStyles.button,
+                homeScreenStyles.buttonRight,
+                { backgroundColor: theme.colors.secondary},
+              ]}
             >
               <View style={{ alignItems: 'center' }}>
                 <MaterialCommunityIcons name="account-multiple-plus" size={20} color={theme.colors.onJoinButton} />
-                <Text style={{ color: theme.colors.onJoinButton, marginTop: 4, fontWeight: '600' }}>
+                <Text style={[homeScreenStyles.text, { color: theme.colors.onJoinButton }]}>
                   Join Room
                 </Text>
               </View>
@@ -95,9 +90,9 @@ export default function HomeScreen() {
           {gameNights.length === 0 ? (
             <NoGameNightCard onCreatePress={() => setModalVisible(true)} />
           ) : (
-            <ScrollView contentContainerStyle={{ paddingVertical: 8 }} style={{ width: '100%', maxHeight: 400 }}>
+            <ScrollView contentContainerStyle={{ paddingVertical: 8 }} style={[homeScreenStyles.cardScroll]} >
               {gameNights.map((gn) => (
-                <View key={gn.id} style={{ marginRight: 12 }}>
+                <View key={gn.id} style={[homeScreenStyles.cardItem]}>
                   <ActiveGameNightCard
                     title={gn.title}
                     date={gn.date}
@@ -115,7 +110,7 @@ export default function HomeScreen() {
           <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
           <ScrollView horizontal>
             {games.map((game) => (
-              <GameCard key={game.id} game={game} />
+              <GameCard key={game.id} game={game} page='Home' />
             ))}
           </ScrollView>
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => { }} />

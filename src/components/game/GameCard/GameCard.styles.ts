@@ -1,9 +1,16 @@
 import { StyleSheet } from 'react-native';
 
 export const gameCardStyles = StyleSheet.create({
-  card: {
+  cardHome: {
     width: 160,
     marginRight: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  cardGames: {
+    width: '100%',
+    maxWidth: 1000,
+    marginBottom: 16,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -13,9 +20,13 @@ export const gameCardStyles = StyleSheet.create({
     marginTop: 16,
   },
   content: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
+  flex: 1,
+  width: '96%',
+  maxWidth: 980,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  justifyContent: 'space-between',
+},
   name: {
     fontWeight: 'bold',
     marginBottom: 6,
