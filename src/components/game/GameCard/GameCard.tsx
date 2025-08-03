@@ -13,8 +13,7 @@ export default function GameCard({ game }: { game: Game }) {
   return (
     <Card
       mode="outlined"
-      style={[gameCardStyles.card, { backgroundColor: theme.colors.elevation.level1 }]}
-    >
+      style={[gameCardStyles.card, { backgroundColor: theme.colors.surface }]}>
       <Image
         source={game.picture}
         resizeMode="contain"

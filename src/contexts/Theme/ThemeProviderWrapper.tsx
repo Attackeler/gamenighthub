@@ -3,6 +3,7 @@ import React from 'react';
 import { PaperProvider } from 'react-native-paper';
 import { ThemeContext } from './ThemeContext';
 import { useThemeToggle } from './useThemeToggle';
+import { View } from 'react-native';
 
 export const ThemeProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   const { isDark, toggleTheme, isLoaded, theme } = useThemeToggle();

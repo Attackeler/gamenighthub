@@ -12,7 +12,7 @@ export default function NoGameNightCard({ onCreatePress }: NoGameNightCardProps)
 
     return (
         <Card style={noGameCardStyles.card} mode="outlined">
-            <Card.Content>
+            <Card.Content style={{ backgroundColor: theme.colors.surface }}>
                 <View style={noGameCardStyles.container}>
                     <MaterialCommunityIcons name="calendar" size={48} color={theme.colors.divider} />
                     <Text variant="titleMedium" style={noGameCardStyles.title}>

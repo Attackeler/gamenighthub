@@ -1,7 +1,6 @@
 // src/screens/HomeScreen.tsx
 import CreateGameNightModal from '@/components/game/GameNightModal/CreateGameNightModal';
 import GameCard from '@/components/game/GameCard/GameCard';
-import Header from '@/layout/Header/Header';
 import Section from '@/components/shared/Section/Section';
 import ActiveGameNightCard from '@/components/sections/ActiveGameNightCard/ActiveGameNightCard';
 import NoGameNightCard from '@/components/sections/NoGameNightCard/NoGameNightCard';
@@ -42,11 +41,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-        <View style={{ width: '100%', maxWidth: 1000, paddingHorizontal: 16, paddingVertical: 10 }}>
-          <Header />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+        <View style={{ width: '100%', maxWidth: 1000, paddingHorizontal: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <TouchableRipple
               onPress={() => setModalVisible(true)}
               rippleColor="rgba(255,255,255,0.3)"
@@ -136,6 +134,6 @@ export default function HomeScreen() {
           setModalVisible(false);
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
