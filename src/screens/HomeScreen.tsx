@@ -1,8 +1,8 @@
 // src/screens/HomeScreen.tsx
-import CreateGameNightModal from '@/components/CreateGameNightModal';
-import GameCard from '@/components/GameCard';
-import Header from '@/components/Header';
-import Section from '@/components/Section';
+import CreateGameNightModal from '@/components/game/CreateGameNightModal';
+import GameCard from '@/components/game/GameCard';
+import Header from '@/layout/Header';
+import Section from '@/components/shared/Section';
 import ActiveGameNightCard from '@/components/sections/ActiveGameNightCard';
 import NoGameNightCard from '@/components/sections/NoGameNightCard';
 import { AppTheme } from '@/themes/types';
@@ -162,7 +162,16 @@ export default function HomeScreen() {
           )}
 
           <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
-          {/* <GameCard game={{ name: "Game 1", description: "Description 1" }} /> */}
+<GameCard
+  game={{
+    name: "Catan",
+    description: "Strategy board game",
+    picture: require("../../assets/images/Catan.png"),
+    duration: "60–90 min",
+    players: "3–4 players",
+  }}
+/>
+
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => { }} />
           <Text>Test</Text>
         </View>
