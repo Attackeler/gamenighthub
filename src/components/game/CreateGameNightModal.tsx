@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Dialog,
   Portal,
@@ -8,11 +8,11 @@ import {
   useTheme,
   Modal,
 } from "react-native-paper";
-import { ScrollView, View, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { AdvancedCheckbox } from "react-native-advanced-checkbox";
 
-// Import mock data
 import { games, friends } from "../game/mockData";
+import { useGameNightForm } from "../game/useGameNightForm";
 
 export default function CreateGameNightModal({
   visible,
@@ -24,33 +24,18 @@ export default function CreateGameNightModal({
   onCreate: () => void;
 }) {
   const theme = useTheme();
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
-  const [selectedGames, setSelectedGames] = useState<number[]>([]);
-  const [invitedFriends, setInvitedFriends] = useState<number[]>([]);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-
-  const toggleGame = (id: number) => {
-    setSelectedGames((prev) =>
-      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
-    );
-  };
-
-  const toggleFriend = (id: number) => {
-    setInvitedFriends((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    );
-  };
+  const form = useGameNightForm();
 
   const handleSubmit = () => {
+    const { title, date, time, location } = form;
+
     if (!title || !date || !time || !location) {
-      setShowErrorDialog(true);
+      form.setShowErrorDialog(true);
       return;
     }
 
     onCreate();
+    form.resetForm?.(); 
     onDismiss();
   };
 
@@ -65,8 +50,8 @@ export default function CreateGameNightModal({
 
       <TextInput
         label="Game Night Title *"
-        value={title}
-        onChangeText={setTitle}
+        value={form.title}
+        onChangeText={form.setTitle}
         mode="outlined"
         style={{ marginBottom: 12 }}
       />
@@ -74,15 +59,15 @@ export default function CreateGameNightModal({
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
         <TextInput
           label="Date *"
-          value={date}
-          onChangeText={setDate}
+          value={form.date}
+          onChangeText={form.setDate}
           mode="outlined"
           style={{ flex: 1 }}
         />
         <TextInput
           label="Time *"
-          value={time}
-          onChangeText={setTime}
+          value={form.time}
+          onChangeText={form.setTime}
           mode="outlined"
           style={{ flex: 1 }}
         />
@@ -90,8 +75,8 @@ export default function CreateGameNightModal({
 
       <TextInput
         label="Location *"
-        value={location}
-        onChangeText={setLocation}
+        value={form.location}
+        onChangeText={form.setLocation}
         mode="outlined"
         style={{ marginBottom: 12 }}
       />
@@ -108,8 +93,8 @@ export default function CreateGameNightModal({
           }}
         >
           <AdvancedCheckbox
-            value={selectedGames.includes(game.id)}
-            onValueChange={() => toggleGame(game.id)}
+            value={form.selectedGames.includes(game.id)}
+            onValueChange={() => form.toggleGame(game.id)}
             uncheckedColor={theme.colors.outline}
             checkedColor={theme.colors.primary}
           />
@@ -133,8 +118,8 @@ export default function CreateGameNightModal({
           }}
         >
           <AdvancedCheckbox
-            value={invitedFriends.includes(friend.id)}
-            onValueChange={() => toggleFriend(friend.id)}
+            value={form.invitedFriends.includes(friend.id)}
+            onValueChange={() => form.toggleFriend(friend.id)}
             uncheckedColor={theme.colors.outline}
             checkedColor={theme.colors.primary}
           />
@@ -142,7 +127,9 @@ export default function CreateGameNightModal({
         </View>
       ))}
 
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}>
+      <View
+        style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}
+      >
         <Button onPress={onDismiss}>Cancel</Button>
         <Button mode="contained" style={{ marginLeft: 12 }} onPress={handleSubmit}>
           Create Game Night
@@ -176,13 +163,16 @@ export default function CreateGameNightModal({
         </Modal>
       )}
 
-      <Dialog visible={showErrorDialog} onDismiss={() => setShowErrorDialog(false)}>
+      <Dialog
+        visible={form.showErrorDialog}
+        onDismiss={() => form.setShowErrorDialog(false)}
+      >
         <Dialog.Title>Error</Dialog.Title>
         <Dialog.Content>
           <Text>Please fill all information required.</Text>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={() => setShowErrorDialog(false)}>OK</Button>
+          <Button onPress={() => form.setShowErrorDialog(false)}>OK</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>
