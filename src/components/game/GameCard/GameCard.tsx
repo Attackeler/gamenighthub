@@ -19,7 +19,7 @@ export default function GameCard({ game }: { game: Game }) {
         source={
           typeof game.picture === 'string' && game.picture.startsWith('http')
             ? { uri: game.picture }
-            : require('assets/images/Catan.png') // fallback if local
+            : require('assets/images/adaptive-icon.png') // fallback if local
         }
         resizeMode="contain"
         style={gameCardStyles.image}

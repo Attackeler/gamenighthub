@@ -113,10 +113,11 @@ export default function HomeScreen() {
           )}
 
           <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
-
-          {games.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
+          <ScrollView horizontal>
+            {games.map((game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </ScrollView>
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => { }} />
           <Text>Test</Text>
         </View>
