@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import { useTheme, Text, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { AppTheme } from '@/themes/types';
-import { useThemeToggle } from '@/contexts/ThemeContext';
+import { useThemeToggle } from '@/contexts/useThemeToggle';
+import { ThemeContext } from '@/contexts/ThemeContext';
 
 export default function Header() {
   const theme = useTheme<AppTheme>();
-  const { isDark, toggleTheme } = useThemeToggle();
+  const { isDark, toggleTheme } =  useContext(ThemeContext);
 
   return (
     <>
