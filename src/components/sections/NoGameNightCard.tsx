@@ -1,43 +1,32 @@
-// src/components/NoGameNightCard.tsx
 import React from 'react';
 import { View } from 'react-native';
 import { Card, Text, useTheme, TouchableRipple } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import { NoGameNightCardProps } from './NoGameNightCard.types';
+import { noGameCardStyles } from './NoGameNightCard.styles';
 import { AppTheme } from '@/themes/types';
 
-type Props = {
-    onCreatePress: () => void;
-};
-
-export default function NoGameNightCard({ onCreatePress }: Props) {
+export default function NoGameNightCard({ onCreatePress }: NoGameNightCardProps) {
     const theme = useTheme<AppTheme>();
 
     return (
-        <Card style={{ marginBottom: 12 }} mode="outlined">
+        <Card style={noGameCardStyles.card} mode="outlined">
             <Card.Content>
-                <View style={{ flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', padding: 16 }}>
+                <View style={noGameCardStyles.container}>
                     <MaterialCommunityIcons name="calendar" size={48} color={theme.colors.divider} />
-                    <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 8 }}>
+                    <Text variant="titleMedium" style={noGameCardStyles.title}>
                         No active game nights
                     </Text>
-                    <Text variant="titleMedium" style={{ marginBottom: 16 }}>
+                    <Text variant="titleMedium" style={noGameCardStyles.subtitle}>
                         Create your first game night to get started!
                     </Text>
                     <TouchableRipple
                         onPress={onCreatePress}
                         rippleColor="rgba(255,255,255,0.3)"
-                        borderless={false}
-                        style={{
-                            width: 200,
-                            height: 40,
-                            borderRadius: 16,
-                            backgroundColor: theme.colors.primary,
-                            paddingVertical: 5,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                        }}
+                        style={[noGameCardStyles.button, { backgroundColor: theme.colors.primary }]}
                     >
+
                         <View style={{ alignItems: 'center', flexDirection: 'row', gap: 8 }}>
                             <MaterialCommunityIcons name="plus" size={20} color={theme.colors.onCreateButton} />
                             <Text
@@ -57,3 +46,4 @@ export default function NoGameNightCard({ onCreatePress }: Props) {
         </Card>
     );
 }
+
