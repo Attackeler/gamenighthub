@@ -13,11 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 import { GameNight } from './HomeScreen.types';
 import { useGameNights } from './HomeScreen.hooks';
+import { useGames } from '@/hooks/useGames';
 
 export default function HomeScreen() {
   const theme = useTheme<AppTheme>();
   const [modalVisible, setModalVisible] = useState(false);
   const { gameNights, saveGameNights } = useGameNights();
+  const games = useGames();
 
   const handleCreateGameNight = () => {
     const newId = uuidv4();
@@ -67,7 +69,7 @@ export default function HomeScreen() {
             </TouchableRipple>
 
             <TouchableRipple
-              onPress={() => {}}
+              onPress={() => { }}
               rippleColor="rgba(0,0,0,0.1)"
               style={{
                 flex: 1,
@@ -88,7 +90,7 @@ export default function HomeScreen() {
             </TouchableRipple>
           </View>
 
-          <Section title="Active Game Nights" actionLabel="See All" onActionPress={() => {}} />
+          <Section title="Active Game Nights" actionLabel="See All" onActionPress={() => { }} />
 
           {gameNights.length === 0 ? (
             <NoGameNightCard onCreatePress={() => setModalVisible(true)} />
@@ -110,18 +112,12 @@ export default function HomeScreen() {
             </ScrollView>
           )}
 
-          <Section title="Popular Games" actionLabel="See All" onActionPress={() => {}} />
-          <GameCard
-            game={{
-              name: 'Catan',
-              description: 'Strategy board game',
-              picture: require('assets/images/Catan.png'),
-              duration: '60–90 min',
-              players: '3–4 players',
-            }}
-          />
+          <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
 
-          <Section title="Recent Activity" actionLabel="See All" onActionPress={() => {}} />
+          {games.map((game) => (
+            <GameCard key={game.id} game={game} />
+          ))}
+          <Section title="Recent Activity" actionLabel="See All" onActionPress={() => { }} />
           <Text>Test</Text>
         </View>
       </ScrollView>

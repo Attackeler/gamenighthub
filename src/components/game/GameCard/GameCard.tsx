@@ -9,16 +9,22 @@ import { gameCardStyles } from './GameCard.styles';
 
 export default function GameCard({ game }: { game: Game }) {
   const theme = useTheme<AppTheme>();
+  console.log('GameCard → game:', game); // 👈 Add this here
 
   return (
     <Card
       mode="outlined"
       style={[gameCardStyles.card, { backgroundColor: theme.colors.surface }]}>
       <Image
-        source={game.picture}
+        source={
+          typeof game.picture === 'string' && game.picture.startsWith('http')
+            ? { uri: game.picture }
+            : require('assets/images/Catan.png') // fallback if local
+        }
         resizeMode="contain"
         style={gameCardStyles.image}
       />
+
 
       <View style={gameCardStyles.content}>
         <Text variant="bodyMedium" style={gameCardStyles.name}>
@@ -32,7 +38,7 @@ export default function GameCard({ game }: { game: Game }) {
             color={theme.colors.onSurfaceVariant}
           />
           <Text variant="bodySmall" style={[gameCardStyles.iconText, { color: theme.colors.onSurfaceVariant }]}>
-            {game.duration}
+            {game.duration ? game.duration : 'Missing duration'}
           </Text>
         </View>
 
