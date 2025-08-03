@@ -1,44 +1,19 @@
-// /app/_layout.tsx
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+// File: app/_layout.tsx
+import { ErrorBoundary } from 'expo-router';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import useLoadFonts from './layout/useLoadFonts';
+import RootLayoutNav from './layout/RootLayoutNav';
 
-import { ThemeProviderWrapper } from '@/contexts/ThemeContext';
-
-export { ErrorBoundary } from 'expo-router';
-
-SplashScreen.preventAutoHideAsync();
+export { ErrorBoundary };
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
+  const { loaded, error } = useLoadFonts();
 
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
   if (!loaded) return null;
 
   return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  return (
-    <ThemeProviderWrapper>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-      </Stack>
-    </ThemeProviderWrapper>
-  );
 }
