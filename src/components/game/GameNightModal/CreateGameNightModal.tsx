@@ -10,9 +10,9 @@ import {
 } from "react-native-paper";
 import { View, Platform } from "react-native";
 import { AdvancedCheckbox } from "react-native-advanced-checkbox";
+import { useGameNightForm } from "./useGameNightForm";
+import { friends, games } from "./mockData";
 
-import { games, friends } from "../game/mockData";
-import { useGameNightForm } from "../game/useGameNightForm";
 
 export default function CreateGameNightModal({
   visible,

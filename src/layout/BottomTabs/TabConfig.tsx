@@ -1,5 +1,5 @@
-import HomeScreen from '../screens/HomeScreen';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
+import HomeScreen from '../../screens/HomeScreen/HomeScreen';
+import PlaceholderScreen from '../../screens/PlaceholderScreen';
 
 export const tabs = [
   { name: 'Home', component: HomeScreen },

@@ -3,8 +3,7 @@ import { View, Image, TouchableOpacity } from 'react-native';
 import { useTheme, Text, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { AppTheme } from '@/themes/types';
-import { useThemeToggle } from '@/contexts/useThemeToggle';
-import { ThemeContext } from '@/contexts/ThemeContext';
+import { ThemeContext } from '@/contexts/Theme/ThemeContext';
 
 export default function Header() {
   const theme = useTheme<AppTheme>();
