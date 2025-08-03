@@ -4,25 +4,15 @@ import {
   Portal,
   Text,
   TextInput,
-  Button, Card,
+  Button,
   useTheme,
   Modal,
-  Checkbox,
 } from "react-native-paper";
 import { ScrollView, View, Platform } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { AdvancedCheckbox } from 'react-native-advanced-checkbox';
+import { AdvancedCheckbox } from "react-native-advanced-checkbox";
 
-const games = [
-  { id: 1, name: "Activity", duration: "45-75 min", players: "3-16 players" },
-  { id: 2, name: "Catan", duration: "60-90 min", players: "3-4 players" },
-  { id: 3, name: "Monopoly", duration: "120-240 min", players: "2-8 players" },
-];
-
-const friends = [
-  { id: 1, name: "teo", email: "teo@teo.com" },
-  { id: 2, name: "test", email: "test@test.com" },
-];
+// Import mock data
+import { games, friends } from "../game/mockData";
 
 export default function CreateGameNightModal({
   visible,
@@ -66,7 +56,10 @@ export default function CreateGameNightModal({
 
   const renderContent = () => (
     <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
-      <Text variant="titleMedium" style={{ fontWeight: "bold", marginBottom: 16 }}>
+      <Text
+        variant="titleMedium"
+        style={{ fontWeight: "bold", marginBottom: 16 }}
+      >
         Create Game Night
       </Text>
 
@@ -105,27 +98,46 @@ export default function CreateGameNightModal({
 
       <Text style={{ fontWeight: "bold", marginBottom: 10 }}>Select Games</Text>
       {games.map((game) => (
-        <View key={game.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10, userSelect: 'none' }}>
+        <View
+          key={game.id}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+            userSelect: "none",
+          }}
+        >
           <AdvancedCheckbox
-            value={selectedGames.includes(game.id) ? true : false}
+            value={selectedGames.includes(game.id)}
             onValueChange={() => toggleGame(game.id)}
             uncheckedColor={theme.colors.outline}
             checkedColor={theme.colors.primary}
           />
-          <Text style={{ marginLeft: 8 }}>{`${game.name}   🕒 ${game.duration}   👥 ${game.players}`}</Text>
+          <Text style={{ marginLeft: 8 }}>
+            {`${game.name}   🕒 ${game.duration}   👥 ${game.players}`}
+          </Text>
         </View>
       ))}
 
-      <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>Invite Friends</Text>
+      <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>
+        Invite Friends
+      </Text>
       {friends.map((friend) => (
-        <View key={friend.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10,  userSelect: 'none' }}>
+        <View
+          key={friend.id}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+            userSelect: "none",
+          }}
+        >
           <AdvancedCheckbox
-            value={invitedFriends.includes(friend.id) ? true : false}
+            value={invitedFriends.includes(friend.id)}
             onValueChange={() => toggleFriend(friend.id)}
             uncheckedColor={theme.colors.outline}
             checkedColor={theme.colors.primary}
           />
-
           <Text style={{ marginLeft: 8 }}>{`${friend.name}   (${friend.email})`}</Text>
         </View>
       ))}
@@ -139,11 +151,14 @@ export default function CreateGameNightModal({
     </View>
   );
 
-
   return (
     <Portal>
       {Platform.OS === "web" ? (
-        <Dialog visible={visible} onDismiss={onDismiss} style={{ maxWidth: 700, alignSelf: 'center' }}>
+        <Dialog
+          visible={visible}
+          onDismiss={onDismiss}
+          style={{ maxWidth: 700, alignSelf: "center" }}
+        >
           <Dialog.Content>{renderContent()}</Dialog.Content>
         </Dialog>
       ) : (
