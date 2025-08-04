@@ -5,3 +5,9 @@ export type GameNight = {
   location: string;
   members: string[];
 };
+
+export type TabParamList = {
+  home: undefined;
+  games: undefined;
+  // ...other tabs
+};

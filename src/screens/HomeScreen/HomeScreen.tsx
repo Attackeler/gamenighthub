@@ -9,16 +9,21 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text, useTheme, TouchableRipple } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { v4 as uuidv4 } from 'uuid';
 import { GameNight } from './HomeScreen.types';
 import { useGameNights } from './HomeScreen.hooks';
 import { useGames } from '@/hooks/useGames';
 import { homeScreenStyles } from './HomeScreen.styles';
+import type { TabParamList } from './HomeScreen.types';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const theme = useTheme<AppTheme>();
   const styles = homeScreenStyles(theme);
+
+  // Use the typed navigation hook inside your component
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const [modalVisible, setModalVisible] = useState(false);
   const { gameNights, saveGameNights } = useGameNights();
   const games = useGames();
@@ -94,7 +99,11 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           )}
-          <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
+          <Section
+            title="Popular Games"
+            actionLabel="See All"
+            onActionPress={() => navigation.navigate('games')}
+          />
           <ScrollView horizontal>
             {games.map((game) => (
               <GameCard key={game.id} game={game} page='Home' />
