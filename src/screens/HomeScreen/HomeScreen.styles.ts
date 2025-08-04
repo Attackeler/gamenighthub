@@ -1,46 +1,60 @@
 // src/screens/HomeScreen.styles.ts
 import { StyleSheet } from 'react-native';
+import { AppTheme } from '@/themes/types';
 
-export const homeScreenStyles = StyleSheet.create({
-    root: {
-        flex: 1,
-    },
-    scrollContainer: {
-        alignItems: 'center',
-    },
-    contentWrapper: {
-        width: '90%',
-        maxWidth: 960,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    button: {
-        flex: 1,
-        borderRadius: 16,
-        paddingVertical: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    buttonLeft: {
-        marginRight: 8,
-    },
-    buttonRight: {
-        marginLeft: 8,
-    },
-    cardScroll: {
-        width: '100%',
-        maxHeight: 400,
-    },
-    cardItem: {
-        marginRight: 12,
-    },
-    horizontalGameScroll: {
-        marginTop: 8,
-    },
-    text: {
-        marginTop: 4,
-        fontWeight: '600',
-    }
+export const homeScreenStyles = (theme: AppTheme) => StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  contentWrapper: {
+    width: '100%',
+    maxWidth: 1000,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 16,
+  },
+  button: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonLeft: {
+    backgroundColor: theme.colors.primary,
+  },
+  buttonRight: {
+    backgroundColor: theme.colors.secondary,
+  },
+  icon: {
+    color: theme.colors.onCreateButton, // or onJoinButton, use in TSX
+  },
+  iconJoin: {
+    color: theme.colors.onJoinButton,
+  },
+  text: {
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  alignCenter: {
+    alignItems: 'center',
+  },
+  cardScroll: {
+    width: '100%',
+    paddingHorizontal: 0,
+  },
+  cardItem: {
+    marginBottom: 12,
+  },
+  sectionScroll: {
+    paddingVertical: 8,
+  },
 });

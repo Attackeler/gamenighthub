@@ -18,6 +18,7 @@ import { homeScreenStyles } from './HomeScreen.styles';
 
 export default function HomeScreen() {
   const theme = useTheme<AppTheme>();
+  const styles = homeScreenStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const { gameNights, saveGameNights } = useGameNights();
   const games = useGames();
@@ -44,55 +45,42 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[homeScreenStyles.root, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-        <View style={homeScreenStyles.contentWrapper}>
-          <View style={homeScreenStyles.buttonRow}>
+    <View style={styles.root}>
+      <ScrollView contentContainerStyle={styles.alignCenter}>
+        <View style={styles.contentWrapper}>
+          <View style={styles.buttonRow}>
             <TouchableRipple
               onPress={() => setModalVisible(true)}
-              rippleColor="rgba(255,255,255,0.3)"
-              style={[
-                homeScreenStyles.button,
-                homeScreenStyles.buttonLeft,
-                {
-                  backgroundColor: theme.colors.primary
-                },
-              ]}
+              rippleColor={theme.colors.rippleCreate}
+              style={[styles.button, styles.buttonLeft]}
             >
-              <View style={{ alignItems: 'center' }}>
-                <MaterialCommunityIcons name="plus" size={20} color="white" />
-                <Text style={[homeScreenStyles.text, { color: theme.colors.onCreateButton }]}>
+              <View style={styles.alignCenter}>
+                <MaterialCommunityIcons name="plus" size={20} style={styles.icon} />
+                <Text style={[styles.text, { color: theme.colors.onCreateButton }]}>
                   Create Game Night
                 </Text>
               </View>
             </TouchableRipple>
-
             <TouchableRipple
               onPress={() => { }}
-              rippleColor="rgba(0,0,0,0.1)"
-              style={[
-                homeScreenStyles.button,
-                homeScreenStyles.buttonRight,
-                { backgroundColor: theme.colors.secondary },
-              ]}
+              rippleColor={theme.colors.rippleJoin}
+              style={[styles.button, styles.buttonRight]}
             >
-              <View style={{ alignItems: 'center' }}>
-                <MaterialCommunityIcons name="account-multiple-plus" size={20} color={theme.colors.onJoinButton} />
-                <Text style={[homeScreenStyles.text, { color: theme.colors.onJoinButton }]}>
+              <View style={styles.alignCenter}>
+                <MaterialCommunityIcons name="account-multiple-plus" size={20} style={styles.iconJoin} />
+                <Text style={[styles.text, { color: theme.colors.onJoinButton }]}>
                   Join Room
                 </Text>
               </View>
             </TouchableRipple>
           </View>
-
           <Section title="Active Game Nights" actionLabel="See All" onActionPress={() => { }} />
-
           {gameNights.length === 0 ? (
             <NoGameNightCard onCreatePress={() => setModalVisible(true)} />
           ) : (
-            <ScrollView contentContainerStyle={{ paddingVertical: 8 }} style={[homeScreenStyles.cardScroll]} >
+            <ScrollView contentContainerStyle={styles.sectionScroll} style={styles.cardScroll}>
               {gameNights.map((gn) => (
-                <View key={gn.id} style={[homeScreenStyles.cardItem]}>
+                <View key={gn.id} style={styles.cardItem}>
                   <ActiveGameNightCard
                     title={gn.title}
                     date={gn.date}
@@ -106,7 +94,6 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           )}
-
           <Section title="Popular Games" actionLabel="See All" onActionPress={() => { }} />
           <ScrollView horizontal>
             {games.map((game) => (
@@ -117,7 +104,6 @@ export default function HomeScreen() {
           <Text>Test</Text>
         </View>
       </ScrollView>
-
       <CreateGameNightModal
         visible={modalVisible}
         onDismiss={() => setModalVisible(false)}

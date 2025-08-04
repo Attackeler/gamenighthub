@@ -6,4 +6,6 @@ export type Game = {
   picture: any;
   duration: string;
   players: string;
+  category: string;
+  difficulty: string;
 };

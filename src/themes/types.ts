@@ -3,6 +3,18 @@ export type CustomColors = {
     divider: string;
     onCreateButton: string;
     onJoinButton: string;
+    categoryBg: string;
+    categoryBorder: string;
+    categoryText: string;
+    categoryShadow: string;
+    difficultyEasyBg: string;
+    difficultyEasyText: string;
+    difficultyMediumBg: string;
+    difficultyMediumText: string;
+    difficultyHardBg: string;
+    difficultyHardText: string;
+    rippleCreate: string; // for light
+    rippleJoin: string;   // for light
 }
 export type ColorScheme = CustomColors & MD3Colors 
 

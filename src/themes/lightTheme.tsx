@@ -16,5 +16,17 @@ export const LightTheme: AppTheme = {
     divider: '#888888',
     onCreateButton: '#ffffff',
     onJoinButton: '#000000',
+    categoryBg: '#fff',
+    categoryBorder: '#d1d5db',
+    categoryText: '#222',
+    categoryShadow: '#000',
+    difficultyEasyBg: '#C6F6D5',
+    difficultyEasyText: '#16A34A',
+    difficultyMediumBg: '#FED7AA',
+    difficultyMediumText: '#EA580C',
+    difficultyHardBg: '#FECACA',
+    difficultyHardText: '#DC2626',
+    rippleCreate: 'rgba(255,255,255,0.3)', // for light
+    rippleJoin: 'rgba(0,0,0,0.1)',         // for light
   },
 };

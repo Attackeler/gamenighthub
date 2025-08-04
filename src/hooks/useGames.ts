@@ -5,10 +5,12 @@ import { db } from '../lib/firebase';
 export type Game = {
   id: string;
   name: string;
-  description: string;
+  description ?: string;
+  picture: any;
   duration: string;
   players: string;
-  picture: string;
+  category: string;
+  difficulty: string;
 };
 
 export function useGames() {
