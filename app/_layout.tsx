@@ -2,7 +2,7 @@
 import { ErrorBoundary } from 'expo-router';
 import { useEffect } from 'react';
 import useLoadFonts from './layout/useLoadFonts';
-import RootLayoutNav from './layout/RootLayoutNav';
+import TabLayout from './index';
 
 export { ErrorBoundary };
 
@@ -15,5 +15,5 @@ export default function RootLayout() {
 
   if (!loaded) return null;
 
-  return <RootLayoutNav />;
+  return <TabLayout />;
 }

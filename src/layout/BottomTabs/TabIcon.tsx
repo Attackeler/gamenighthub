@@ -11,19 +11,19 @@ export function TabIcon({ routeName, color, size }: Props) {
   let iconName: keyof typeof MaterialCommunityIcons.glyphMap;
 
   switch (routeName) {
-    case 'Home':
+    case 'home':
       iconName = 'home';
       break;
-    case 'Games':
+    case 'games':
       iconName = 'gamepad-variant';
       break;
-    case 'Friends':
+    case 'friends':
       iconName = 'account-group';
       break;
-    case 'Stats':
+    case 'stats':
       iconName = 'chart-bar';
       break;
-    case 'Profile':
+    case 'profile':
       iconName = 'account';
       break;
     default:

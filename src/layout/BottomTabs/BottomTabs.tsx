@@ -16,7 +16,7 @@ export default function BottomTabs() {
 
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Tab.Navigator
-        initialRouteName="Home"
+        initialRouteName="home"
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarShowLabel: false,
