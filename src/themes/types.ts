@@ -13,8 +13,10 @@ export type CustomColors = {
     difficultyMediumText: string;
     difficultyHardBg: string;
     difficultyHardText: string;
-    rippleCreate: string; // for light
-    rippleJoin: string;   // for light
+    rippleCreate: string; 
+    rippleJoin: string;   
+    tabBarActiveIcon: string;
+    tabBarInactiveIcon: string;
 }
 export type ColorScheme = CustomColors & MD3Colors 
 

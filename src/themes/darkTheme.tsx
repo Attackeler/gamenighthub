@@ -28,5 +28,7 @@ export const DarkTheme: AppTheme = {
     difficultyHardText: '#F87171',    // soft red text
     rippleCreate: 'rgba(255,255,255,0.3)', // for light
     rippleJoin: 'rgba(0,0,0,0.1)',         // for light
+    tabBarActiveIcon: '#3B82F6',    // bright blue for active icon
+    tabBarInactiveIcon: '#4B5563',  // muted gray for inactive icon
   },
 };

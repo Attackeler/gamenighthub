@@ -20,8 +20,8 @@ export default function BottomTabs() {
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.outline,
+          tabBarActiveTintColor: theme.colors.tabBarActiveIcon,
+          tabBarInactiveTintColor: theme.colors.tabBarInactiveIcon,
           tabBarStyle: {
             backgroundColor: theme.colors.background,
             borderTopWidth: 0,
