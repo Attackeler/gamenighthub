@@ -7,3 +7,7 @@ body {
     background-color: #000;
   }
 }`;
+
+export default function ResponsiveStyle() {
+  return null;
+}

@@ -18,7 +18,7 @@ export default function GamesScreen() {
               style={[gamesScreenStyles.text]}
             >
               Games
-            </Text> 
+            </Text>
             {games.map((game) => (
               <GameCard key={game.id} game={game} page='Games' />
             ))}
