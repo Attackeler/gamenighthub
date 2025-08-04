@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 export const gameCardStyles = StyleSheet.create({
   cardHome: {
     width: 160,
-    marginRight: 12,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -13,6 +12,9 @@ export const gameCardStyles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     overflow: 'hidden',
+    alignSelf: 'stretch',
+    marginLeft: 0,
+    marginRight: 0,
   },
   image: {
     width: '100%',
@@ -21,8 +23,8 @@ export const gameCardStyles = StyleSheet.create({
   },
   content: {
   flex: 1,
-  width: '96%',
-  maxWidth: 980,
+  width: '100%',
+  maxWidth: 1000,
   paddingHorizontal: 12,
   paddingVertical: 10,
   justifyContent: 'space-between',

@@ -73,7 +73,7 @@ export default function HomeScreen() {
               style={[
                 homeScreenStyles.button,
                 homeScreenStyles.buttonRight,
-                { backgroundColor: theme.colors.secondary},
+                { backgroundColor: theme.colors.secondary },
               ]}
             >
               <View style={{ alignItems: 'center' }}>
