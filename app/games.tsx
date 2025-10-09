@@ -1,2 +1,3 @@
-import GamesScreen from '@/screens/GamesScreen/GamesScreen';
-export default GamesScreen; 
+import GamesScreen from '@/features/games/screens/games/GamesScreen';
+
+export default GamesScreen;
