@@ -11,7 +11,9 @@ export function useGames() {
     const fetchGames = async () => {
       if (db) {
         const snapshot = await getDocs(collection(db, 'games'));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Game));
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Game))
+          .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
         setGames(data);
       }
     };
@@ -21,3 +23,4 @@ export function useGames() {
 
   return games;
 }
+
