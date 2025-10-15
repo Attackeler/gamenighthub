@@ -1,14 +1,36 @@
 import React from 'react';
 import { NavigationIndependentTree } from '@react-navigation/native';
 import { View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { ActivityIndicator, useTheme } from 'react-native-paper';
 
 import BottomTabs from '@/app/navigation/bottom-tabs/BottomTabs';
 import Header from '@/app/navigation/header/Header';
 import { AppTheme } from '@/app/theme/types';
+import AuthScreen from '@/features/auth/screens/AuthScreen';
+import useAuth from '@/features/auth/hooks/useAuth';
 
 export default function TabLayout() {
   const theme = useTheme<AppTheme>();
+  const { user, initializing } = useAuth();
+
+  if (initializing) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <ActivityIndicator animating size="large" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
 
   return (
     <NavigationIndependentTree>
@@ -19,3 +41,4 @@ export default function TabLayout() {
     </NavigationIndependentTree>
   );
 }
+

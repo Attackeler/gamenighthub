@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export const gamesScreenStyles = StyleSheet.create({
   root: {
@@ -19,6 +19,172 @@ export const gamesScreenStyles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 12,
     marginLeft: 10,
+  },
+  searchBarContainer: {
+    width: '100%',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  searchBar: {
+    borderRadius: 24,
+    elevation: 0,
+    height: 44,
+    minHeight: 44,
+    paddingVertical: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchBarInput: {
+    fontSize: 15,
+    paddingVertical: 0,
+    height: 44,
+    lineHeight: Platform.select({ ios: 20, default: 44 }),
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    minHeight: 0,
+    paddingTop: Platform.select({ ios: 2, default: 0 }),
+    paddingBottom: Platform.select({ ios: 0, default: 0 }),
+  },
+  filtersContainer: {
+    width: "100%",
+    paddingHorizontal: 10,
+    marginBottom: 12,
+    gap: 8,
+  },
+  filtersContainerCompact: {
+    gap: 6,
+  },
+  filtersContainerWide: {
+    gap: 12,
+  },
+  filtersTopRow: {
+    width: "100%",
+    flexDirection: "column",
+    gap: 8,
+    alignItems: "stretch",
+  },
+  filtersTopRowWide: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sortDropdownWrapper: {
+    width: "100%",
+  },
+  sortDropdownWrapperWide: {
+    flex: 1,
+  },
+  sortSegmentedGroup: {
+    width: '100%',
+  },
+  sortSegmentedButton: {
+    minWidth: 80,
+    flex: 1,
+  },
+  sortSegmentedButtonLabel: {
+    fontSize: 13,
+  },
+  sortDropdownButton: {
+    borderRadius: 24,
+    width: "100%",
+    minHeight: 44,
+  },
+  sortDropdownButtonWide: {
+    alignSelf: "stretch",
+  },
+  sortDropdownButtonContent: {
+    height: 44,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  sortDropdownButtonLabel: {
+    fontSize: 15,
+    textTransform: "none",
+    textAlign: "left",
+  },
+  sortMenuWrapper: {
+    marginTop: 4,
+  },
+  sortMenuContent: {
+    borderRadius: 16,
+    paddingVertical: 4,
+    minWidth: 190,
+    borderWidth: 1,
+  },
+  sortMenuItem: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  sortMenuItemTitle: {
+    fontSize: 15,
+  },
+  filterModal: {
+    marginHorizontal: 16,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    maxHeight: 520,
+    width: "92%",
+    maxWidth: 520,
+    alignSelf: "center",
+    borderWidth: 1,
+  },
+  filterModalTitle: {
+    marginBottom: 12,
+  },
+  filterSectionLabel: {
+    marginTop: 4,
+    marginBottom: 8,
+    fontWeight: "600",
+  },
+  filterChipGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 4,
+  },
+  filterChip: {
+    marginRight: 0,
+  },
+  filterDivider: {
+    marginVertical: 16,
+    height: 1,
+  },
+  filterCategoriesScroll: {
+    maxHeight: 220,
+  },
+  filterCategoriesContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingBottom: 4,
+  },
+  filterActions: {
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  playerFilter: {
+    borderRadius: 24,
+    elevation: 0,
+    height: 44,
+    minHeight: 44,
+    paddingVertical: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  playerFilterCompact: {
+    marginTop: 6,
+  },
+  playerFilterWide: {
+    width: 220,
+  },
+  playerFilterInput: {
+    lineHeight: Platform.select({ ios: 20, default: 44 }),
+    paddingTop: Platform.select({ ios: 2, web: 2, default: 0 }),
+    paddingBottom: Platform.select({ ios: 0, web: 0, default: 0 }),
+    textAlign: "left",
   },
   emptyState: {
     marginLeft: 10,

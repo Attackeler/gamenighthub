@@ -46,8 +46,9 @@ export default function Header() {
 
             <TouchableOpacity>
               <Image
-                source={{ uri: 'https://i.pravatar.cc/40' }}
+                source={{ uri: 'https://i.pravatar.cc/80' }}
                 style={{ width: 34, height: 34, borderRadius: 100 }}
+                resizeMode="cover"
               />
             </TouchableOpacity>
           </View>

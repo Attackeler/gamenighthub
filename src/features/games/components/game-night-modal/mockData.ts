@@ -1,5 +1,5 @@
 export type GameOption = {
-  id: number;
+  id: string;
   name: string;
   duration: string;
   players: string;
@@ -12,9 +12,9 @@ export type FriendOption = {
 };
 
 export const games: GameOption[] = [
-  { id: 1, name: 'Activity', duration: '45-75 min', players: '3-16 players' },
-  { id: 2, name: 'Catan', duration: '60-90 min', players: '3-4 players' },
-  { id: 3, name: 'Monopoly', duration: '120-240 min', players: '2-8 players' },
+  { id: 'activity', name: 'Activity', duration: '45-75 min', players: '3-16 players' },
+  { id: 'catan', name: 'Catan', duration: '60-90 min', players: '3-4 players' },
+  { id: 'monopoly', name: 'Monopoly', duration: '120-240 min', players: '2-8 players' },
 ];
 
 export const friends: FriendOption[] = [

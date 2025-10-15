@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Text, TouchableRipple, useTheme } from 'react-native-paper';
+import { IconButton, Text, TouchableRipple, useTheme } from 'react-native-paper';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 
@@ -10,6 +10,7 @@ import CreateGameNightModal, {
 } from '@/features/games/components/game-night-modal/CreateGameNightModal';
 import GameCard from '@/features/games/components/game-card/GameCard';
 import { useGames } from '@/features/games/hooks/useGames';
+import type { Game } from '@/features/games/types';
 import ActiveGameNightCard from '@/features/home/components/active-game-night-card/ActiveGameNightCard';
 import NoGameNightCard from '@/features/home/components/no-game-night-card/NoGameNightCard';
 import { useGameNights } from '@/features/home/hooks/useGameNights';
@@ -20,6 +21,21 @@ import type { TabParamList } from './HomeScreen.types';
 import type { GameNight } from './HomeScreen.types';
 
 const getMaxScrollableItems = () => (Platform.OS === 'web' ? 3 : 2);
+const CARD_WIDTH = 180;
+const CARD_GAP = 12;
+
+const FALLBACK_TOP_IDS = [
+  174430, // Gloomhaven
+  161936, // Pandemic Legacy: Season 1
+  224517, // Brass: Birmingham
+  167791, // Terraforming Mars
+  233078, // Twilight Imperium: Fourth Edition
+  106662, // Star Wars: Rebellion
+  182028, // Through the Ages: A New Story of Civilization
+  115746, // War of the Ring (Second Edition)
+  220308, // Gaia Project
+  162886, // Spirit Island
+];
 
 export default function HomeScreen() {
   const theme = useTheme<AppTheme>();
@@ -29,6 +45,31 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const { gameNights, saveGameNights } = useGameNights();
   const games = useGames();
+  const scrollRef = useRef<ScrollView | null>(null);
+  const [scrollX, setScrollX] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const isWeb = Platform.OS === 'web';
+  const topPopularGames = useMemo(() => {
+    const rankedGames = games
+      .filter(
+        (game): game is Game & { rank: number } =>
+          typeof game.rank === 'number' && Number.isFinite(game.rank) && game.rank > 0,
+      )
+      .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+      .slice(0, 10);
+
+    if (rankedGames.length === 10) {
+      return rankedGames;
+    }
+
+    const fallbackGames = FALLBACK_TOP_IDS
+      .map((bggId) => games.find((game) => (game.bggId ?? Number(game.id)) === bggId))
+      .filter((game): game is Game => Boolean(game));
+
+    const combined = [...rankedGames, ...fallbackGames.filter((game) => !rankedGames.some((r) => r.id === game.id))];
+    return combined.slice(0, 10);
+  }, [games]);
 
   const addTemplateGameNight = () => {
     const newNight: GameNight = {
@@ -46,8 +87,8 @@ export default function HomeScreen() {
         { id: 2, name: 'Testy Tina', email: 'tina@test.com' },
       ],
       selectedGames: [
-        { id: 1, name: 'Activity', duration: '45-75 min', players: '3-16 players' },
-        { id: 2, name: 'Catan', duration: '60-90 min', players: '3-4 players' },
+        { id: 'activity', name: 'Activity', duration: '45-75 min', players: '3-16 players' },
+        { id: 'catan', name: 'Catan', duration: '60-90 min', players: '3-4 players' },
       ],
     };
     saveGameNights([...gameNights, newNight]);
@@ -77,6 +118,23 @@ export default function HomeScreen() {
   const handleDeleteGameNight = (id: string) => {
     const updated = gameNights.filter((item) => item.id !== id);
     saveGameNights(updated);
+  };
+
+  const maxScroll = Math.max(contentWidth - containerWidth, 0);
+  const canScrollPrev = isWeb && scrollX > 5;
+  const canScrollNext = isWeb && scrollX < maxScroll - 5;
+
+  const handleScrollBy = (direction: 1 | -1) => {
+    if (!isWeb) return;
+    const delta = CARD_WIDTH + CARD_GAP;
+    const next = Math.max(0, Math.min(maxScroll, scrollX + direction * delta));
+    scrollRef.current?.scrollTo({ x: next, animated: true });
+    setScrollX(next);
+  };
+
+  const handleScroll = (event: any) => {
+    if (!isWeb) return;
+    setScrollX(event.nativeEvent.contentOffset.x);
   };
 
   const shouldScrollActiveCards = gameNights.length > getMaxScrollableItems();
@@ -171,11 +229,55 @@ export default function HomeScreen() {
             onActionPress={() => navigation.navigate('games')}
           />
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {games.map((game) => (
-              <GameCard key={game.id} game={game} page="Home" />
-            ))}
-          </ScrollView>
+          <View style={styles.popularGamesRow}>
+            {isWeb && (
+              <IconButton
+                icon="chevron-left"
+                mode="outlined"
+                size={20}
+                disabled={!canScrollPrev}
+                onPress={() => handleScrollBy(-1)}
+                style={styles.carouselButton}
+              />
+            )}
+            <View
+              style={styles.carouselScrollWrapper}
+              onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
+            >
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                scrollEnabled
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                onContentSizeChange={(width) => setContentWidth(width)}
+                contentContainerStyle={styles.carouselContent}
+              >
+                {topPopularGames.map((game, index) => (
+                  <View
+                    key={game.id}
+                    style={{
+                      width: CARD_WIDTH,
+                      marginRight: index === topPopularGames.length - 1 ? 0 : CARD_GAP,
+                    }}
+                  >
+                    <GameCard game={game} page="Home" />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+            {isWeb && (
+              <IconButton
+                icon="chevron-right"
+                mode="outlined"
+                size={20}
+                disabled={!canScrollNext}
+                onPress={() => handleScrollBy(1)}
+                style={styles.carouselButton}
+              />
+            )}
+          </View>
 
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => {}} />
           <Text>Test</Text>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
+  Chip,
   Dialog,
   IconButton,
   Modal,
@@ -19,7 +20,8 @@ import {
   isSameDay,
 } from "@/shared/utils/date";
 import { useGameNightForm } from "./useGameNightForm";
-import { friends, games, type FriendOption, type GameOption } from "./mockData";
+import { useGames } from "@/features/games/hooks/useGames";
+import { friends, games as fallbackGames, type FriendOption, type GameOption } from "./mockData";
 
 export type CreateGameNightFormValues = {
   title: string;
@@ -41,6 +43,82 @@ export default function CreateGameNightModal({
 }) {
   const theme = useTheme();
   const form = useGameNightForm();
+  const allGames = useGames();
+
+  const gameOptions = useMemo<GameOption[]>(() => {
+    const source = allGames.length > 0 ? allGames : fallbackGames;
+    if (!source?.length) {
+      return [];
+    }
+
+    return source.map((game) => {
+      const name = game.name?.trim() || "Untitled Game";
+      const duration = game.duration?.trim() || "Duration unavailable";
+
+      let playersLabel = game.players?.trim();
+      if (!playersLabel) {
+        const minRaw = (game as any).minPlayers;
+        const maxRaw = (game as any).maxPlayers;
+        const min =
+          typeof minRaw === "number" && Number.isFinite(minRaw) ? minRaw : null;
+        const max =
+          typeof maxRaw === "number" && Number.isFinite(maxRaw) ? maxRaw : null;
+
+        if (min !== null && max !== null) {
+          playersLabel = `${min}-${max} players`;
+        } else if (min !== null) {
+          playersLabel = `${min}+ players`;
+        } else if (max !== null) {
+          playersLabel = `Up to ${max} players`;
+        } else {
+          playersLabel = "Players info unavailable";
+        }
+      }
+
+      return {
+        id: String(game.id),
+        name,
+        duration,
+        players: playersLabel,
+      };
+    });
+  }, [allGames]);
+
+  const [gameSearch, setGameSearch] = useState("");
+  const [selectedGamesListVisible, setSelectedGamesListVisible] = useState(false);
+
+  const filteredGames = useMemo(() => {
+    const query = gameSearch.trim().toLowerCase();
+    if (!query) return [];
+
+    return gameOptions
+      .filter((game) => game.name.toLowerCase().includes(query))
+      .slice(0, 20);
+  }, [gameOptions, gameSearch]);
+
+  const selectedGameDetails = useMemo(() => {
+    if (form.selectedGames.length === 0) {
+      return [] as GameOption[];
+    }
+    const byId = new Map(gameOptions.map((game) => [game.id, game]));
+    return form.selectedGames
+      .map((id) => byId.get(id))
+      .filter((game): game is GameOption => Boolean(game));
+  }, [form.selectedGames, gameOptions]);
+  const hasGameQuery = gameSearch.trim().length > 0;
+
+  useEffect(() => {
+    if (!visible) {
+      setGameSearch("");
+      setSelectedGamesListVisible(false);
+    }
+  }, [visible]);
+  useEffect(() => {
+    if (selectedGamesListVisible && selectedGameDetails.length <= 2) {
+      setSelectedGamesListVisible(false);
+    }
+  }, [selectedGamesListVisible, selectedGameDetails]);
+
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
@@ -117,7 +195,6 @@ export default function CreateGameNightModal({
       formattedDate,
       formattedTime,
       location,
-      selectedGames: selectedGameIds,
       invitedFriends: invitedFriendIds,
     } = form;
 
@@ -141,10 +218,6 @@ export default function CreateGameNightModal({
       return;
     }
 
-    const selectedGameDetails = games.filter((game) =>
-      selectedGameIds.includes(game.id)
-    );
-
     const invitedFriendDetails = friends.filter((friend) =>
       invitedFriendIds.includes(friend.id)
     );
@@ -158,11 +231,20 @@ export default function CreateGameNightModal({
       invitedFriends: invitedFriendDetails,
     });
     form.resetForm?.();
+    setGameSearch("");
+    setSelectedGamesListVisible(false);
     onDismiss();
   };
 
-  const renderContent = () => (
-    <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
+  const renderContent = () => {
+    const inlineSelectedGames = selectedGameDetails.slice(0, 2);
+    const extraSelectedGamesCount = Math.max(
+      selectedGameDetails.length - inlineSelectedGames.length,
+      0,
+    );
+
+    return (
+      <View style={{ paddingHorizontal: 24, paddingBottom: 16, gap: 12 }}>
       <Text
         variant="titleMedium"
         style={{ fontWeight: "bold", marginBottom: 16 }}
@@ -215,27 +297,152 @@ export default function CreateGameNightModal({
       />
 
       <Text style={{ fontWeight: "bold", marginBottom: 10 }}>Select Games</Text>
-      {games.map((game) => (
-        <View
-          key={game.id}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 10,
-            userSelect: "none",
-          }}
-        >
-          <AdvancedCheckbox
-            value={form.selectedGames.includes(game.id)}
-            onValueChange={() => form.toggleGame(game.id)}
-            uncheckedColor={theme.colors.outline}
-            checkedColor={theme.colors.primary}
+      {gameOptions.length > 0 ? (
+        <>
+          <TextInput
+            mode="outlined"
+            value={gameSearch}
+            onChangeText={setGameSearch}
+            placeholder="Search games"
+            left={<TextInput.Icon icon="magnify" />}
+            style={{ marginBottom: 12 }}
           />
-          <Text style={{ marginLeft: 8 }}>
-            {`${game.name} - ${game.duration} - ${game.players}`}
-          </Text>
-        </View>
-      ))}
+          {selectedGameDetails.length > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: hasGameQuery ? 8 : 16,
+                alignItems: "center",
+                minHeight: 32,
+              }}
+            >
+              {inlineSelectedGames.map((game) => (
+                <Chip
+                  key={`selected-${game.id}`}
+                  mode="outlined"
+                  selected
+                  onClose={() => form.toggleGame(game.id)}
+                  style={{ borderColor: theme.colors.primary, minHeight: 32, justifyContent: "center" }}
+                  textStyle={{ color: theme.colors.onSurface }}
+                >
+                  {game.name}
+                </Chip>
+              ))}
+              {extraSelectedGamesCount > 0 && (
+                <Chip
+                  mode="outlined"
+                  icon="format-list-bulleted"
+                  onPress={() => setSelectedGamesListVisible(true)}
+                  style={{ borderColor: theme.colors.primary, minHeight: 32, justifyContent: "center" }}
+                  textStyle={{ color: theme.colors.onSurface }}
+                >
+                  +{extraSelectedGamesCount} more
+                </Chip>
+              )}
+            </View>
+          )}
+          {hasGameQuery ? (
+            filteredGames.length > 0 ? (
+              <View
+                style={{
+                  maxHeight: 220,
+                  borderWidth: 1,
+                  borderColor: theme.colors.outlineVariant ?? theme.colors.outline,
+                  borderRadius: 16,
+                  paddingVertical: 4,
+                  paddingHorizontal: 6,
+                  marginBottom: 4,
+                }}
+              >
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingVertical: 4 }}
+                >
+                  {filteredGames.map((game) => {
+                    const isSelected = form.selectedGames.includes(game.id);
+                    return (
+                      <TouchableRipple
+                        key={game.id}
+                        borderless={false}
+                        onPress={() => form.toggleGame(game.id)}
+                        style={{ borderRadius: 12, marginBottom: 4 }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            paddingVertical: 6,
+                            paddingHorizontal: 6,
+                            borderRadius: 12,
+                            backgroundColor: isSelected
+                              ? theme.colors.primaryContainer ?? theme.colors.primary
+                              : "transparent",
+                            userSelect: "none",
+                            minHeight: 32,
+                          }}
+                        >
+                          <AdvancedCheckbox
+                            value={isSelected}
+                            onValueChange={() => form.toggleGame(game.id)}
+                            uncheckedColor={theme.colors.outline}
+                            checkedColor={theme.colors.primary}
+                          />
+                          <View style={{ marginLeft: 10, flex: 1 }}>
+                            <Text
+                              style={{
+                                fontWeight: "600",
+                                color: isSelected
+                                  ? theme.colors.onPrimary ?? theme.colors.onSurface
+                                  : theme.colors.onSurface,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {game.name}
+                            </Text>
+                            <Text
+                              style={{
+                                color: isSelected
+                                  ? theme.colors.onPrimary ?? theme.colors.onSurface
+                                  : theme.colors.onSurfaceVariant,
+                                fontSize: 12,
+                                marginTop: 2,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {`${game.duration} • ${game.players}`}
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableRipple>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : (
+              <Text style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>
+                No games match your search.
+              </Text>
+            )
+          ) : (
+            <Text style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>
+              Start typing to search your games.
+            </Text>
+          )}
+        </>
+      ) : (
+        <Text style={{ color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>
+          No games available yet.
+        </Text>
+      )}
+
+      {gameOptions.length > 0 && !hasGameQuery && selectedGameDetails.length === 0 && (
+        <Text style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}>
+          Select games by searching and ticking them from the results.
+        </Text>
+      )}
 
       <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>
         Invite Friends
@@ -269,7 +476,8 @@ export default function CreateGameNightModal({
         </Button>
       </View>
     </View>
-  );
+    );
+  };
 
   return (
     <Portal>
@@ -313,6 +521,50 @@ export default function CreateGameNightModal({
           {renderContent()}
         </Modal>
       )}
+
+      <Dialog
+        visible={selectedGamesListVisible}
+        onDismiss={() => setSelectedGamesListVisible(false)}
+        style={{
+          maxWidth: 420,
+          alignSelf: "center",
+          backgroundColor: theme.colors.background,
+          borderWidth: 1,
+          borderColor: theme.colors.primary,
+          borderRadius: 20,
+        }}
+      >
+        <Dialog.Title>Selected Games</Dialog.Title>
+        <Dialog.Content style={{ maxHeight: 320 }}>
+          {selectedGameDetails.length ? (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {selectedGameDetails.map((game) => (
+                <View key={`selected-summary-${game.id}`} style={{ marginBottom: 12 }}>
+                  <Text style={{ fontWeight: "600", color: theme.colors.onSurface }}>
+                    {game.name}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.colors.onSurfaceVariant,
+                      marginTop: 2,
+                      fontSize: 12,
+                    }}
+                  >
+                    {`${game.duration} • ${game.players}`}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={{ color: theme.colors.onSurfaceVariant }}>
+              No games selected yet.
+            </Text>
+          )}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setSelectedGamesListVisible(false)}>Close</Button>
+        </Dialog.Actions>
+      </Dialog>
 
       <Dialog
         visible={datePickerVisible}
@@ -727,3 +979,4 @@ const styles = StyleSheet.create({
     color: "#8c8c8c",
   },
 });
+

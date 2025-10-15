@@ -7,19 +7,19 @@ export function useGameNightForm() {
   const [dateValue, setDateValue] = useState<Date | null>(null);
   const [timeValue, setTimeValue] = useState<Date | null>(null);
   const [location, setLocation] = useState('');
-  const [selectedGames, setSelectedGames] = useState<number[]>([]);
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [invitedFriends, setInvitedFriends] = useState<number[]>([]);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
 
-  const toggleGame = (id: number) => {
+  const toggleGame = (id: string) => {
     setSelectedGames((prev) =>
-      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((gameId) => gameId !== id) : [...prev, id],
     );
   };
 
   const toggleFriend = (id: number) => {
     setInvitedFriends((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((friendId) => friendId !== id) : [...prev, id],
     );
   };
 
@@ -43,15 +43,22 @@ export function useGameNightForm() {
   };
 
   return {
-    title, setTitle,
-    dateValue, setDateValue,
-    timeValue, setTimeValue,
+    title,
+    setTitle,
+    dateValue,
+    setDateValue,
+    timeValue,
+    setTimeValue,
     formattedDate,
     formattedTime,
-    location, setLocation,
-    selectedGames, toggleGame,
-    invitedFriends, toggleFriend,
-    showErrorDialog, setShowErrorDialog,
+    location,
+    setLocation,
+    selectedGames,
+    toggleGame,
+    invitedFriends,
+    toggleFriend,
+    showErrorDialog,
+    setShowErrorDialog,
     resetForm,
   };
 }

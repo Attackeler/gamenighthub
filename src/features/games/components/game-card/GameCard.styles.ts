@@ -7,6 +7,7 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
     width: 160,
     borderRadius: 12,
     overflow: 'hidden',
+    minHeight: 220,
   },
   cardGames: {
     width: '100%',
@@ -22,12 +23,17 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
     width: '100%',
     height: 100,
     marginTop: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.surfaceVariant ?? theme.colors.surface,
   },
   imageGames: {
     width: 96,
     height: 96,
     borderRadius: 8,
     alignSelf: 'flex-start',
+    backgroundColor: theme.colors.surfaceVariant ?? theme.colors.surface,
+    overflow: 'hidden',
   },
   content: {
     flex: 1,
@@ -51,6 +57,7 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
   name: {
     fontWeight: 'bold',
     marginBottom: 6,
+    minHeight: 40,
   },
   iconRow: {
     flexDirection: 'row',
@@ -80,6 +87,8 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     marginRight: 12,
+    flex: 1,
+    paddingRight: 96,
   },
   difficultyGames: {
     fontSize: 13,
@@ -111,8 +120,16 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
     zIndex: 2,
   },
   descriptionGames: {
-    marginBottom: 8,
+    marginBottom: 6,
     marginTop: 2,
+  },
+  descriptionToggleWrapper: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  descriptionToggleText: {
+    fontWeight: '600',
+    fontSize: 13,
   },
   metaGames: {
     flexDirection: 'row',

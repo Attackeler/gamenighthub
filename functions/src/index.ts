@@ -1,6 +1,7 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import axios from "axios";
+import type { Request, Response } from "express";
 import { parseStringPromise } from "xml2js";
 import cors from "cors";
 
@@ -47,6 +48,21 @@ function mapBggThingToDoc(thing: BggThing) {
 
   const image =
     thing.image?.[0] ?? thing.thumbnail?.[0] ?? "";
+
+  const ranks =
+    thing.statistics?.[0]?.ratings?.[0]?.ranks?.[0]?.rank ?? [];
+  const overallRankEntry = ranks.find(
+    (rank: any) => rank?.$?.name === "boardgame",
+  );
+  let rank: number | null = null;
+  if (overallRankEntry) {
+    const value = overallRankEntry.$?.value;
+    const numeric = Number(value);
+    rank =
+      Number.isFinite(numeric) && numeric > 0
+        ? numeric
+        : null;
+  }
   const minPlayers = Number(thing.minplayers?.[0]?.$.value ?? 0);
   const maxPlayers = Number(thing.maxplayers?.[0]?.$.value ?? 0);
   const minPlaytime = Number(thing.minplaytime?.[0]?.$.value ?? 0);
@@ -99,14 +115,18 @@ function mapBggThingToDoc(thing: BggThing) {
     difficulty,
     category,
     categories,
+    rank,
     lastFetchedAt: Math.floor(Date.now() / 1000),
   };
 }
 
 function withCors(
-  handler: (req: functions.https.Request, res: functions.Response) => Promise<void>,
+  handler: (
+    req: Request,
+    res: Response,
+  ) => Promise<void>,
 ) {
-  return (req: functions.https.Request, res: functions.Response) => {
+  return (req: Request, res: Response) => {
     return corsHandler(req, res, () => handler(req, res));
   };
 }

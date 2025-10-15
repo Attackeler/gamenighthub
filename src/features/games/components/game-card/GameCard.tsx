@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -16,6 +16,45 @@ type Props = {
 export default function GameCard({ game, page = 'Home' }: Props) {
   const theme = useTheme<AppTheme>();
   const styles = gameCardStyles(theme);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const description = game?.description ?? '';
+  const shouldShowToggle = description.length > 220;
+  const [hasImageError, setHasImageError] = useState(false);
+
+  const resolvedImageUri = useMemo(() => {
+    if (typeof game.picture !== 'string') {
+      return null;
+    }
+
+    if (game.picture.startsWith('http://') || game.picture.startsWith('https://')) {
+      return game.picture;
+    }
+
+    if (game.picture.startsWith('//')) {
+      return `https:${game.picture}`;
+    }
+
+    if (game.picture.startsWith('/')) {
+      return `https://boardgamegeek.com${game.picture}`;
+    }
+
+    return null;
+  }, [game.picture]);
+
+  useEffect(() => {
+    setIsDescriptionExpanded(false);
+    setHasImageError(false);
+  }, [game?.id]);
+
+  useEffect(() => {
+    if (resolvedImageUri) {
+      Image.prefetch?.(resolvedImageUri).catch(() => {});
+    }
+  }, [resolvedImageUri]);
+
+  const pictureSource = hasImageError || !resolvedImageUri
+    ? require('assets/images/adaptive-icon.png')
+    : { uri: resolvedImageUri };
 
   if (page === 'Home' && game) {
     return (
@@ -25,16 +64,18 @@ export default function GameCard({ game, page = 'Home' }: Props) {
           style={[styles.cardHome, { backgroundColor: theme.colors.surface }]}
         >
           <Image
-            source={
-              typeof game.picture === 'string' && game.picture.startsWith('http')
-                ? { uri: game.picture }
-                : require('assets/images/adaptive-icon.png')
-            }
-            resizeMode="contain"
+            source={pictureSource}
             style={styles.image}
+            resizeMode="cover"
+            onError={() => setHasImageError(true)}
           />
           <View style={styles.content}>
-            <Text variant="bodyMedium" style={styles.name}>
+            <Text
+              variant="bodyMedium"
+              style={styles.name}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
               {game.name}
             </Text>
             <View style={styles.iconRow}>
@@ -85,23 +126,47 @@ export default function GameCard({ game, page = 'Home' }: Props) {
             </View>
             <View style={styles.rowGames}>
               <Image
-                source={
-                  typeof game.picture === 'string' && game.picture.startsWith('http')
-                    ? { uri: game.picture }
-                    : require('assets/images/adaptive-icon.png')
-                }
-                resizeMode="contain"
+                source={pictureSource}
                 style={styles.imageGames}
+                resizeMode="cover"
+                onError={() => setHasImageError(true)}
               />
               <View style={styles.infoGames}>
                 <View style={styles.headerGames}>
-                  <Text variant="bodyMedium" style={styles.nameGames}>
+                  <Text
+                    variant="bodyMedium"
+                    style={styles.nameGames}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
                     {game.name}
                   </Text>
                 </View>
-                <Text variant="bodySmall" style={styles.descriptionGames}>
-                  {game.description}
+                <Text
+                  variant="bodySmall"
+                  style={styles.descriptionGames}
+                  numberOfLines={isDescriptionExpanded ? undefined : 4}
+                >
+                  {description}
                 </Text>
+                {shouldShowToggle && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      setIsDescriptionExpanded((prevExpanded) => !prevExpanded)
+                    }
+                    activeOpacity={0.7}
+                    style={styles.descriptionToggleWrapper}
+                  >
+                    <Text
+                      style={[
+                        styles.descriptionToggleText,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
+                      {isDescriptionExpanded ? 'Read less' : 'Read more'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <View style={styles.metaGames}>
                   <View style={styles.metaItemGames}>
                     <MaterialCommunityIcons

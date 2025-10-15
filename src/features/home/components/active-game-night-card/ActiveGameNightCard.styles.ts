@@ -21,14 +21,36 @@ export const activeCardStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 12,
     gap: 8,
   },
   locationRow: {
-    marginBottom: 4,
+    marginBottom: 12,
   },
   gamesRow: {
     marginBottom: 12,
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectedGamesChipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    flex: 1,
+    alignItems: 'center',
+    minHeight: 32,
+  },
+  gamesRowIcon: {
+    alignSelf: 'center',
+  },
+  selectedGameChip: {
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+  },
+  selectedGameChipText: {
+    fontSize: 12,
+    lineHeight: 16,
   },
   invitedRow: {
     flexDirection: 'row',
@@ -63,3 +85,5 @@ export const activeCardStyles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+

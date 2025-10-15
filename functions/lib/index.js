@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bggThing = exports.bggSearch = void 0;
-const functions = __importStar(require("firebase-functions"));
+const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
 const xml2js_1 = require("xml2js");
@@ -69,6 +69,17 @@ function mapBggThingToDoc(thing) {
         names[0]?.$.value ??
         "";
     const image = thing.image?.[0] ?? thing.thumbnail?.[0] ?? "";
+    const ranks = thing.statistics?.[0]?.ratings?.[0]?.ranks?.[0]?.rank ?? [];
+    const overallRankEntry = ranks.find((rank) => rank?.$?.name === "boardgame");
+    let rank = null;
+    if (overallRankEntry) {
+        const value = overallRankEntry.$?.value;
+        const numeric = Number(value);
+        rank =
+            Number.isFinite(numeric) && numeric > 0
+                ? numeric
+                : null;
+    }
     const minPlayers = Number(thing.minplayers?.[0]?.$.value ?? 0);
     const maxPlayers = Number(thing.maxplayers?.[0]?.$.value ?? 0);
     const minPlaytime = Number(thing.minplaytime?.[0]?.$.value ?? 0);
@@ -109,6 +120,7 @@ function mapBggThingToDoc(thing) {
         difficulty,
         category,
         categories,
+        rank,
         lastFetchedAt: Math.floor(Date.now() / 1000),
     };
 }

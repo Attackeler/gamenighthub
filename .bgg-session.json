@@ -1,0 +1,165 @@
+{
+  "storageState": {
+    "cookies": [
+      {
+        "name": "_gid",
+        "value": "GA1.2.788724923.1760374044",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1760460527,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "bggusername",
+        "value": "Attackeler",
+        "domain": "boardgamegeek.com",
+        "path": "/",
+        "expires": 1762966051.085081,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "bggpassword",
+        "value": "13xbdxmgbv6la9sb56kr47a535we9t82",
+        "domain": "boardgamegeek.com",
+        "path": "/",
+        "expires": 1762966051.085127,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "SessionID",
+        "value": "0a99cf253d9658369958af28b45a8b1de3c540ecu4387825",
+        "domain": "boardgamegeek.com",
+        "path": "/",
+        "expires": 1760377727.284191,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "cc_cookie",
+        "value": "%7B%22level%22%3A%5B%22necessary%22%2C%22analytics%22%2C%22shopping%22%2C%22socialmedia%22%5D%2C%22revision%22%3A1%2C%22rfc_cookie%22%3Atrue%7D",
+        "domain": "boardgamegeek.com",
+        "path": "/",
+        "expires": 1776098852,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "IDE",
+        "value": "AHWqTUnt24rUU9Ow75e1eLnQvhvLyIxt_B4q_HWl93yhsywhCG1nGLFGzymRuhu_Xq8",
+        "domain": ".doubleclick.net",
+        "path": "/",
+        "expires": 1794934052.557946,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "None"
+      },
+      {
+        "name": "__gads",
+        "value": "ID=e04935b07664318f:T=1760374055:RT=1760374055:S=ALNI_MYfZo-9qHW7Ojxn_wzyQ4xNfRvHxQ",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1794070055,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "None"
+      },
+      {
+        "name": "__gpi",
+        "value": "UID=000012a3369c597e:T=1760374055:RT=1760374055:S=ALNI_MaQmD7YNlTV3eiZVFwGDcbrowuSiA",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1794070055,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "None"
+      },
+      {
+        "name": "__eoi",
+        "value": "ID=dfebb7abc8874d8f:T=1760374055:RT=1760374055:S=AA-AfjbbX1olz7kmgNMFy4FKkKfI",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1775926055,
+        "httpOnly": false,
+        "secure": true,
+        "sameSite": "None"
+      },
+      {
+        "name": "_ga",
+        "value": "GA1.2.1958584587.1760374043",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1794934127.206102,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "_gat_gtag_UA_104725_1",
+        "value": "1",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1760374187,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "FCNEC",
+        "value": "%5B%5B%22AKsRol82gMiAHDJfDHe7Bkjl4Ydt7fkQ8WGAPdzACi1LTyX3CQ8iG7vGP_pl2UDNRm27S1zNLtYNZrbLaNeA1CxONWnlZpGDHEKCQSXJrgBY3U0pH4Z3dCOzJzlPhYjpEzXVf0uqiw6S9jDwBCIhC0PkDpB8SW-eBw%3D%3D%22%5D%5D",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1791910129,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+      },
+      {
+        "name": "_ga_GMNMCY4DVM",
+        "value": "GS2.1.s1760374042$o1$g1$t1760374132$j38$l0$h0",
+        "domain": ".boardgamegeek.com",
+        "path": "/",
+        "expires": 1794934132.039176,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+      }
+    ],
+    "origins": [
+      {
+        "origin": "https://boardgamegeek.com",
+        "localStorage": [
+          {
+            "name": "goog:cached:topics",
+            "value": "[null,1760374052243,3]"
+          },
+          {
+            "name": "user_4387825_hideFixedSidebar",
+            "value": "false"
+          },
+          {
+            "name": "adblockSettings",
+            "value": "null"
+          }
+        ]
+      },
+      {
+        "origin": "https://www.google.com",
+        "localStorage": [
+          {
+            "name": "rc::h",
+            "value": "1760374052562"
+          }
+        ]
+      }
+    ]
+  },
+  "browseTemplate": null
+}

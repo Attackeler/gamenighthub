@@ -90,5 +90,21 @@ export const homeScreenStyles = (theme: AppTheme) => {
     debugButton: {
       backgroundColor: theme.colors.primary,
     },
+    popularGamesRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 12,
+      width: '100%',
+    },
+    carouselScrollWrapper: {
+      flex: 1,
+    },
+    carouselContent: {
+      paddingVertical: 4,
+      paddingHorizontal: Platform.OS === 'web' ? 4 : 0,
+    },
+    carouselButton: {
+      marginHorizontal: 4,
+    },
   });
 };

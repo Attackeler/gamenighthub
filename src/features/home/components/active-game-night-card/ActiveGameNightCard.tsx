@@ -1,6 +1,6 @@
-import React from 'react';
-import { Image, View } from 'react-native';
-import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import React, { useMemo, useState } from 'react';
+import { Image, ScrollView, View } from 'react-native';
+import { Button, Card, Chip, Dialog, IconButton, Portal, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { AppTheme } from '@/app/theme/types';
@@ -21,10 +21,18 @@ export default function ActiveGameNightCard({
   onDeletePress,
 }: ActiveGameNightCardProps) {
   const theme = useTheme<AppTheme>();
+  const [selectedGamesDialogVisible, setSelectedGamesDialogVisible] = useState(false);
+
+  const inlineSelectedGames = useMemo(
+    () => selectedGames.slice(0, 2),
+    [selectedGames],
+  );
+  const extraSelectedGamesCount = Math.max(selectedGames.length - inlineSelectedGames.length, 0);
 
   return (
-    <Card style={styles.card} mode="outlined">
-      <Card.Content style={styles.content}>
+    <>
+      <Card style={styles.card} mode="outlined">
+        <Card.Content style={styles.content}>
         <View style={styles.header}>
           <Text variant="titleMedium" style={styles.title}>
             {title}
@@ -47,12 +55,36 @@ export default function ActiveGameNightCard({
         </View>
 
         <View style={[styles.row, styles.gamesRow]}>
-          <MaterialCommunityIcons name="gamepad-variant-outline" size={16} color={theme.colors.outline} />
-          <Text style={{ color: theme.colors.onSurface }} numberOfLines={1}>
-            {selectedGames.length
-              ? selectedGames.map((game) => game.name).join(', ')
-              : 'No games selected'}
-          </Text>
+          <MaterialCommunityIcons name="gamepad-variant-outline" size={16} color={theme.colors.outline} style={styles.gamesRowIcon} />
+          {selectedGames.length === 0 ? (
+            <Text style={{ color: theme.colors.onSurface }} numberOfLines={1}>
+              No games selected
+            </Text>
+          ) : (
+            <View style={styles.selectedGamesChipContainer}>
+              {inlineSelectedGames.map((game) => (
+                <Chip
+                  key={`active-chip-${game.id}`}
+                  mode="outlined"
+                  style={styles.selectedGameChip}
+                  textStyle={styles.selectedGameChipText}
+                >
+                  {game.name}
+                </Chip>
+              ))}
+              {extraSelectedGamesCount > 0 && (
+                <Chip
+                  mode="outlined"
+                  icon="format-list-bulleted"
+                  onPress={() => setSelectedGamesDialogVisible(true)}
+                  style={styles.selectedGameChip}
+                  textStyle={styles.selectedGameChipText}
+                >
+                  +{extraSelectedGamesCount} more
+                </Chip>
+              )}
+            </View>
+          )}
         </View>
 
         <View style={styles.footerRow}>
@@ -92,7 +124,52 @@ export default function ActiveGameNightCard({
             </Button>
           </View>
         </View>
-      </Card.Content>
-    </Card>
+        </Card.Content>
+      </Card>
+
+      <Portal>
+        <Dialog
+          visible={selectedGamesDialogVisible}
+          onDismiss={() => setSelectedGamesDialogVisible(false)}
+          style={{
+            maxWidth: 420,
+            alignSelf: 'center',
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            backgroundColor: theme.colors.background,
+          }}
+        >
+          <Dialog.Title>Selected Games</Dialog.Title>
+          <Dialog.Content style={{ maxHeight: 320 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {selectedGames.map((game) => (
+                <View key={`dialog-game-${game.id}`} style={{ marginBottom: 12 }}>
+                  <Text style={{ fontWeight: '600', color: theme.colors.onSurface }}>
+                    {game.name}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.colors.onSurfaceVariant,
+                      marginTop: 2,
+                      fontSize: 12,
+                    }}
+                  >
+                    {`${game.duration} • ${game.players}`}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setSelectedGamesDialogVisible(false)}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </>
   );
 }
+
+
+
+
