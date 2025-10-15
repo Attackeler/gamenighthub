@@ -11,7 +11,7 @@ import useAuth from '@/features/auth/hooks/useAuth';
 
 export default function TabLayout() {
   const theme = useTheme<AppTheme>();
-  const { user, initializing } = useAuth();
+  const { user, initializing, isEmailVerified } = useAuth();
 
   if (initializing) {
     return (
@@ -28,7 +28,7 @@ export default function TabLayout() {
     );
   }
 
-  if (!user) {
+  if (!user || !isEmailVerified) {
     return <AuthScreen />;
   }
 

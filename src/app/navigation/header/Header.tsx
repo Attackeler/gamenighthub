@@ -5,10 +5,20 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { AppTheme } from '@/app/theme/types';
 import { ThemeContext } from '@/app/providers/theme/ThemeContext';
+import useAuth from '@/features/auth/hooks/useAuth';
 
 export default function Header() {
   const theme = useTheme<AppTheme>();
   const { isDark, toggleTheme } = useContext(ThemeContext);
+  const { signOut, user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.warn('Failed to sign out', error);
+    }
+  };
 
   return (
     <View style={{ backgroundColor: theme.colors.background }}>
@@ -44,9 +54,24 @@ export default function Header() {
               <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
             </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={handleSignOut}
+              style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}
+            >
+              <MaterialCommunityIcons
+                name="logout"
+                size={22}
+                color={theme.colors.onBackground}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={{ color: theme.colors.onBackground, fontWeight: '600' }}>
+                Sign out
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity>
               <Image
-                source={{ uri: 'https://i.pravatar.cc/80' }}
+                source={{ uri: user?.photoURL ?? 'https://i.pravatar.cc/80' }}
                 style={{ width: 34, height: 34, borderRadius: 100 }}
                 resizeMode="cover"
               />
