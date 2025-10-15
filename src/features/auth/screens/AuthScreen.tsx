@@ -16,7 +16,7 @@ import {
   TextInput,
   useTheme,
 } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@/shared/icons";
 
 import useAuth from "../hooks/useAuth";
 import { AppTheme } from "@/app/theme/types";

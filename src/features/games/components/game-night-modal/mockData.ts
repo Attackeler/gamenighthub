@@ -6,9 +6,11 @@ export type GameOption = {
 };
 
 export type FriendOption = {
-  id: number;
+  id: string;
   name: string;
   email: string;
+  friendCode?: string;
+  photoURL?: string | null;
 };
 
 export const games: GameOption[] = [
@@ -17,7 +19,4 @@ export const games: GameOption[] = [
   { id: 'monopoly', name: 'Monopoly', duration: '120-240 min', players: '2-8 players' },
 ];
 
-export const friends: FriendOption[] = [
-  { id: 1, name: 'teo', email: 'teo@teo.com' },
-  { id: 2, name: 'test', email: 'test@test.com' },
-];
+export const friends: FriendOption[] = [];

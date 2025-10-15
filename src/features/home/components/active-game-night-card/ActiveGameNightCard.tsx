@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { Button, Card, Chip, Dialog, IconButton, Portal, Text, useTheme } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@/shared/icons';
 
 import { AppTheme } from '@/app/theme/types';
 

@@ -2,14 +2,14 @@
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function useLoadFonts() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
+    MaterialCommunityIcons: require('../../assets/fonts/MaterialCommunityIcons.ttf'),
+    Ionicons: require('../../assets/fonts/Ionicons.ttf'),
   });
 
   useEffect(() => {

@@ -8,7 +8,7 @@ export function useGameNightForm() {
   const [timeValue, setTimeValue] = useState<Date | null>(null);
   const [location, setLocation] = useState('');
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
-  const [invitedFriends, setInvitedFriends] = useState<number[]>([]);
+  const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
 
   const toggleGame = (id: string) => {
@@ -17,7 +17,7 @@ export function useGameNightForm() {
     );
   };
 
-  const toggleFriend = (id: number) => {
+  const toggleFriend = (id: string) => {
     setInvitedFriends((prev) =>
       prev.includes(id) ? prev.filter((friendId) => friendId !== id) : [...prev, id],
     );

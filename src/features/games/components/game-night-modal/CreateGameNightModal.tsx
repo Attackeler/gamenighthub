@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Button,
   Chip,
   Dialog,
@@ -21,7 +22,8 @@ import {
 } from "@/shared/utils/date";
 import { useGameNightForm } from "./useGameNightForm";
 import { useGames } from "@/features/games/hooks/useGames";
-import { friends, games as fallbackGames, type FriendOption, type GameOption } from "./mockData";
+import { games as fallbackGames, type FriendOption, type GameOption } from "./mockData";
+import { useUserProfile } from "@/features/profile/context/UserProfileContext";
 
 export type CreateGameNightFormValues = {
   title: string;
@@ -44,6 +46,19 @@ export default function CreateGameNightModal({
   const theme = useTheme();
   const form = useGameNightForm();
   const allGames = useGames();
+  const { friends: userFriends, loadingFriends } = useUserProfile();
+
+  const friendOptions = useMemo<FriendOption[]>(
+    () =>
+      userFriends.map((friend) => ({
+        id: friend.uid,
+        name: friend.displayName ?? friend.email ?? "Player",
+        email: friend.email ?? "",
+        friendCode: friend.friendCode ?? "",
+        photoURL: friend.photoURL ?? null,
+      })),
+    [userFriends],
+  );
 
   const gameOptions = useMemo<GameOption[]>(() => {
     const source = allGames.length > 0 ? allGames : fallbackGames;
@@ -85,7 +100,9 @@ export default function CreateGameNightModal({
   }, [allGames]);
 
   const [gameSearch, setGameSearch] = useState("");
+  const [friendSearch, setFriendSearch] = useState("");
   const [selectedGamesListVisible, setSelectedGamesListVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const filteredGames = useMemo(() => {
     const query = gameSearch.trim().toLowerCase();
@@ -95,6 +112,15 @@ export default function CreateGameNightModal({
       .filter((game) => game.name.toLowerCase().includes(query))
       .slice(0, 20);
   }, [gameOptions, gameSearch]);
+
+  const filteredFriends = useMemo(() => {
+    const query = friendSearch.trim().toLowerCase();
+    if (!query) return friendOptions;
+    return friendOptions.filter((friend) => {
+      const haystack = `${friend.name} ${friend.email ?? ""} ${friend.friendCode ?? ""}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [friendOptions, friendSearch]);
 
   const selectedGameDetails = useMemo(() => {
     if (form.selectedGames.length === 0) {
@@ -110,6 +136,7 @@ export default function CreateGameNightModal({
   useEffect(() => {
     if (!visible) {
       setGameSearch("");
+      setFriendSearch("");
       setSelectedGamesListVisible(false);
     }
   }, [visible]);
@@ -187,7 +214,7 @@ export default function CreateGameNightModal({
   const currentHour = nowForTime.getHours();
   const currentMinute = nowForTime.getMinutes();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const {
       title,
       dateValue,
@@ -218,22 +245,30 @@ export default function CreateGameNightModal({
       return;
     }
 
-    const invitedFriendDetails = friends.filter((friend) =>
+    const invitedFriendDetails = friendOptions.filter((friend) =>
       invitedFriendIds.includes(friend.id)
     );
 
-    onCreate({
-      title,
-      date: formattedDate,
-      time: formattedTime,
-      location,
-      selectedGames: selectedGameDetails,
-      invitedFriends: invitedFriendDetails,
-    });
-    form.resetForm?.();
-    setGameSearch("");
-    setSelectedGamesListVisible(false);
-    onDismiss();
+    try {
+      setSubmitting(true);
+      await onCreate({
+        title,
+        date: formattedDate,
+        time: formattedTime,
+        location,
+        selectedGames: selectedGameDetails,
+        invitedFriends: invitedFriendDetails,
+      });
+      form.resetForm?.();
+      setGameSearch("");
+      setFriendSearch("");
+      setSelectedGamesListVisible(false);
+      onDismiss();
+    } catch (error) {
+      console.warn("Failed to submit game night", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderContent = () => {
@@ -446,32 +481,61 @@ export default function CreateGameNightModal({
 
       <Text style={{ fontWeight: "bold", marginTop: 20, marginBottom: 10 }}>
         Invite Friends
-      </Text>
-      {friends.map((friend) => (
-        <View
-          key={friend.id}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 10,
-            userSelect: "none",
-          }}
-        >
-          <AdvancedCheckbox
-            value={form.invitedFriends.includes(friend.id)}
-            onValueChange={() => form.toggleFriend(friend.id)}
-            uncheckedColor={theme.colors.outline}
-            checkedColor={theme.colors.primary}
+        </Text>
+        {friendOptions.length > 0 && (
+          <TextInput
+            mode="outlined"
+            value={friendSearch}
+            onChangeText={setFriendSearch}
+            placeholder="Search by name, email, or ID"
+            left={<TextInput.Icon icon="magnify" />}
+            style={{ marginBottom: 12 }}
           />
-          <Text style={{ marginLeft: 8 }}>{`${friend.name} (${friend.email})`}</Text>
-        </View>
-      ))}
+        )}
+        {loadingFriends ? (
+          <View style={{ paddingVertical: 12, alignItems: "center" }}>
+            <ActivityIndicator />
+          </View>
+        ) : friendOptions.length === 0 ? (
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>
+            You haven't added any friends yet. Share your friend ID from the profile tab to invite
+            players.
+          </Text>
+        ) : filteredFriends.length === 0 ? (
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>
+            No friends match your search.
+          </Text>
+        ) : (
+          filteredFriends.map((friend) => (
+            <View
+              key={friend.id}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 10,
+                userSelect: "none",
+              }}
+            >
+              <AdvancedCheckbox
+                value={form.invitedFriends.includes(friend.id)}
+                onValueChange={() => form.toggleFriend(friend.id)}
+                uncheckedColor={theme.colors.outline}
+                checkedColor={theme.colors.primary}
+              />
+              <Text style={{ marginLeft: 8 }}>
+                {friend.friendCode
+                  ? `${friend.name} (${friend.email}) - ${friend.friendCode}`
+                  : `${friend.name} (${friend.email})`}
+              </Text>
+            </View>
+          ))
+        )}
 
       <View
         style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 20 }}
       >
         <Button onPress={onDismiss}>Cancel</Button>
-        <Button mode="contained" style={{ marginLeft: 12 }} onPress={handleSubmit}>
+        <Button mode="contained" style={{ marginLeft: 12 }} onPress={handleSubmit} loading={submitting} disabled={submitting}>
           Create Game Night
         </Button>
       </View>
@@ -979,4 +1043,17 @@ const styles = StyleSheet.create({
     color: "#8c8c8c",
   },
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 

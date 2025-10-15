@@ -1,26 +1,40 @@
 {
-  "firestore": {
-    "database": "(default)",
-    "location": "europe-west1",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
-  "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+    "firestore":  {
+                      "database":  "(default)",
+                      "location":  "europe-west1",
+                      "rules":  "firestore.rules",
+                      "indexes":  "firestore.indexes.json"
+                  },
+    "functions":  {
+                      "source":  "functions",
+                      "runtime":  "nodejs20",
+                      "ignore":  [
+                                     "app/**",
+                                     "src/**",
+                                     "transfonter.org-20251015-191627/**",
+                                     "dist/**"
+                                 ]
+                  },
+    "hosting":  {
+                    "public":  "dist",
+                    "ignore":  [
+                                   "firebase.json",
+                                   "**/.*",
+                                   "**/node_modules/**",
+                                   "!assets/node_modules/**"
+                               ],
+                    "rewrites":  [
+                                     {
+                                         "source":  "**",
+                                         "destination":  "/index.html"
+                                     }
+                                 ],
+                    "redirects":  [
+                                      {
+                                          "destination":  "/assets/assets/fonts/:font",
+                                          "source":  "/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/:font",
+                                          "type":  302
+                                      }
+                                  ]
+                }
 }

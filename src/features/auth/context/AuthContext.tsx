@@ -173,6 +173,8 @@ export function AuthProvider({ children }: Props) {
           throw error;
         }
 
+        await ensureUserProfile(credential.user);
+
         if (!credential.user.emailVerified) {
           const targetEmail = credential.user.email ?? trimmedEmail;
           const idToken = await credential.user.getIdToken(true);
@@ -201,6 +203,7 @@ export function AuthProvider({ children }: Props) {
         }
 
         const credential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
+        await ensureUserProfile(credential.user);
         const targetEmail = credential.user.email ?? trimmedEmail;
         const idToken = await credential.user.getIdToken(true);
         await requestVerificationEmail(idToken, targetEmail);
@@ -270,13 +273,14 @@ export function AuthProvider({ children }: Props) {
       return;
     }
 
-    return runWithLoading(async () => {
-      const credential = await signInWithPopup(auth, googleAuthProvider);
-      if (!credential.user.emailVerified) {
-        const targetEmail = credential.user.email;
-        if (!targetEmail) {
-          throw new Error("We couldn't determine your Google account email.");
-        }
+      return runWithLoading(async () => {
+        const credential = await signInWithPopup(auth, googleAuthProvider);
+        await ensureUserProfile(credential.user);
+        if (!credential.user.emailVerified) {
+          const targetEmail = credential.user.email;
+          if (!targetEmail) {
+            throw new Error("We couldn't determine your Google account email.");
+          }
         const idToken = await credential.user.getIdToken(true);
         await requestVerificationEmail(idToken, targetEmail);
         setPendingVerificationEmail(targetEmail);

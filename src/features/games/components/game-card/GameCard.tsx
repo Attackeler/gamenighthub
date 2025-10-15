@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@/shared/icons';
 
 import { AppTheme } from '@/app/theme/types';
 import { Game, GameCardPage } from '@/features/games/types';

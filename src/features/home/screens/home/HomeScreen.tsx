@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { IconButton, Text, TouchableRipple, useTheme } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@/shared/icons';
+import { Button, Card, IconButton, Text, TouchableRipple, useTheme } from 'react-native-paper';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 
@@ -18,7 +18,6 @@ import Section from '@/shared/components/section/Section';
 import { AppTheme } from '@/app/theme/types';
 import { homeScreenStyles } from './HomeScreen.styles';
 import type { TabParamList } from './HomeScreen.types';
-import type { GameNight } from './HomeScreen.types';
 
 const getMaxScrollableItems = () => (Platform.OS === 'web' ? 3 : 2);
 const CARD_WIDTH = 180;
@@ -43,7 +42,7 @@ export default function HomeScreen() {
 
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const [modalVisible, setModalVisible] = useState(false);
-  const { gameNights, saveGameNights } = useGameNights();
+  const { gameNights, invitations, createNight, acceptInvite, declineInvite, removeNight } = useGameNights();
   const games = useGames();
   const scrollRef = useRef<ScrollView | null>(null);
   const [scrollX, setScrollX] = useState(0);
@@ -71,53 +70,19 @@ export default function HomeScreen() {
     return combined.slice(0, 10);
   }, [games]);
 
-  const addTemplateGameNight = () => {
-    const newNight: GameNight = {
-      id: createGameNightId(),
-      title: 'Debug Night',
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      location: 'Debug Arena',
-      members: [
-        'https://i.pravatar.cc/40?u=debug-1',
-        'https://i.pravatar.cc/40?u=debug-2',
-      ],
-      invitedFriends: [
-        { id: 1, name: 'Debugger Dan', email: 'dan@debug.com' },
-        { id: 2, name: 'Testy Tina', email: 'tina@test.com' },
-      ],
-      selectedGames: [
-        { id: 'activity', name: 'Activity', duration: '45-75 min', players: '3-16 players' },
-        { id: 'catan', name: 'Catan', duration: '60-90 min', players: '3-4 players' },
-      ],
-    };
-    saveGameNights([...gameNights, newNight]);
-  };
-
-  const handleCreateGameNight = (values: CreateGameNightFormValues) => {
-    const newId = createGameNightId();
-    const members = values.invitedFriends.map((friend, index) => {
-      const uniqueKey = friend.email || `${friend.name}-${index}`;
-      return `https://i.pravatar.cc/40?u=${encodeURIComponent(uniqueKey)}`;
-    });
-
-    const newNight: GameNight = {
-      id: newId,
-      title: values.title,
-      date: values.date,
-      time: values.time,
-      location: values.location,
-      members,
-      invitedFriends: values.invitedFriends,
-      selectedGames: values.selectedGames,
-    };
-    const updated = [...gameNights, newNight];
-    saveGameNights(updated);
+  const handleCreateGameNight = async (values: CreateGameNightFormValues) => {
+    try {
+      await createNight(values);
+      setModalVisible(false);
+    } catch (error) {
+      console.warn('Failed to create game night', error);
+    }
   };
 
   const handleDeleteGameNight = (id: string) => {
-    const updated = gameNights.filter((item) => item.id !== id);
-    saveGameNights(updated);
+    removeNight(id).catch((error) => {
+      console.warn('Failed to delete game night', error);
+    });
   };
 
   const maxScroll = Math.max(contentWidth - containerWidth, 0);
@@ -170,20 +135,60 @@ export default function HomeScreen() {
             </TouchableRipple>
           </View>
 
-          <View style={styles.debugButtonRow}>
-            <TouchableRipple
-              onPress={addTemplateGameNight}
-              rippleColor={theme.colors.rippleCreate}
-              style={[styles.button, styles.debugButton]}
-            >
-              <View style={styles.alignCenter}>
-                <MaterialCommunityIcons name="beaker-plus" size={20} style={styles.icon} />
-                <Text style={[styles.text, { color: theme.colors.onCreateButton }]}>
-                  Add Template Night
-                </Text>
-              </View>
-            </TouchableRipple>
-          </View>
+          {invitations.length > 0 && (
+            <View style={{ width: '100%', marginBottom: 24, gap: 12 }}>
+              <Section title="Invitations" />
+              {invitations.map((invite) => (
+                <Card
+                  key={invite.id}
+                  mode="outlined"
+                  style={{
+                    borderRadius: 16,
+                    padding: 16,
+                    backgroundColor: theme.colors.surface,
+                  }}
+                >
+                  <Text variant="titleMedium" style={{ fontWeight: '600', color: theme.colors.onSurface }}>
+                    {invite.title}
+                  </Text>
+                  <Text style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}>
+                    Hosted by {invite.ownerName}
+                  </Text>
+                  <Text style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
+                    {invite.date}
+                    {invite.time ? ` @ ${invite.time}` : ''}
+                  </Text>
+                  <Text style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
+                    {invite.location}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+                    <Button
+                      mode="contained"
+                      onPress={() => {
+                        acceptInvite(invite.id).catch((error) => {
+                          console.warn('Failed to accept invitation', error);
+                        });
+                      }}
+                      icon="check"
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      mode="outlined"
+                      onPress={() => {
+                        declineInvite(invite.id).catch((error) => {
+                          console.warn('Failed to decline invitation', error);
+                        });
+                      }}
+                      icon="close"
+                    >
+                      Decline
+                    </Button>
+                  </View>
+                </Card>
+              ))}
+            </View>
+          )}
 
           <Section title="Active Game Nights" actionLabel="See All" onActionPress={() => {}} />
 
@@ -280,19 +285,17 @@ export default function HomeScreen() {
           </View>
 
           <Section title="Recent Activity" actionLabel="See All" onActionPress={() => {}} />
-          <Text>Test</Text>
+
         </View>
       </ScrollView>
 
       <CreateGameNightModal
         visible={modalVisible}
         onDismiss={() => setModalVisible(false)}
-        onCreate={(formValues) => {
-          handleCreateGameNight(formValues);
-        }}
+        onCreate={handleCreateGameNight}
       />
     </View>
   );
 }
 
-const createGameNightId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+

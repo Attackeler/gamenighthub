@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { ThemeContext } from './ThemeContext';
 import { useThemeToggle } from './useThemeToggle';
+import { MaterialCommunityIcons } from '@/shared/icons';
 
 export const ThemeProviderWrapper = ({ children }: { children: React.ReactNode }) => {
   const { isDark, toggleTheme, isLoaded, theme } = useThemeToggle();
@@ -12,7 +13,12 @@ export const ThemeProviderWrapper = ({ children }: { children: React.ReactNode }
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      <PaperProvider theme={theme}>
+      <PaperProvider
+        theme={theme}
+        settings={{
+          icon: (props) => <MaterialCommunityIcons {...props} />,
+        }}
+      >
         <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={theme.colors.background} />
         {children}
       </PaperProvider>

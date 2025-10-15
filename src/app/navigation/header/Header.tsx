@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { Appbar, Divider, Text, useTheme } from 'react-native-paper';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@/shared/icons';
 
 import { AppTheme } from '@/app/theme/types';
 import { ThemeContext } from '@/app/providers/theme/ThemeContext';

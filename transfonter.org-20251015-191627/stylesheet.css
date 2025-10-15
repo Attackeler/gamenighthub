@@ -1,0 +1,171 @@
+@font-face {
+    font-family: 'EvilIcons';
+    src: url('EvilIcons.woff2') format('woff2'),
+        url('EvilIcons.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 5 Brands';
+    src: url('FontAwesome5Brands-Regular.woff2') format('woff2'),
+        url('FontAwesome5Brands-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Brands';
+    src: url('FontAwesome6Brands-Regular.woff2') format('woff2'),
+        url('FontAwesome6Brands-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'fontcustom';
+    src: url('fontcustom.woff2') format('woff2'),
+        url('fontcustom.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ionicons';
+    src: url('Ionicons.woff2') format('woff2'),
+        url('Ionicons.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Feather';
+    src: url('Feather.woff2') format('woff2'),
+        url('Feather.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Free Solid';
+    src: url('FontAwesome6Free-Solid.woff2') format('woff2'),
+        url('FontAwesome6Free-Solid.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'zocial';
+    src: url('zocial.woff2') format('woff2'),
+        url('zocial.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 5 Free Solid';
+    src: url('FontAwesome5Free-Solid.woff2') format('woff2'),
+        url('FontAwesome5Free-Solid.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    src: url('MaterialIcons-Regular.woff2') format('woff2'),
+        url('MaterialIcons-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 5 Free';
+    src: url('FontAwesome5Free-Regular.woff2') format('woff2'),
+        url('FontAwesome5Free-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Octicons';
+    src: url('Octicons.woff2') format('woff2'),
+        url('Octicons.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Material Design Icons';
+    src: url('MaterialDesignIcons.woff2') format('woff2'),
+        url('MaterialDesignIcons.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Entypo';
+    src: url('Entypo.woff2') format('woff2'),
+        url('Entypo.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AntDesign';
+    src: url('AntDesign.woff2') format('woff2'),
+        url('AntDesign.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'simple-line-icons';
+    src: url('simple-line-icons.woff2') format('woff2'),
+        url('simple-line-icons.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    src: url('FontAwesome6Free-Regular.woff2') format('woff2'),
+        url('FontAwesome6Free-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FontAwesome';
+    src: url('FontAwesome.woff2') format('woff2'),
+        url('FontAwesome.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'fontisto';
+    src: url('fontisto.woff2') format('woff2'),
+        url('fontisto.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

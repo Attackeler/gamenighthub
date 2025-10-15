@@ -1,5 +1,6 @@
 import React from 'react';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import { MaterialCommunityIcons, MaterialCommunityIconName } from '@/shared/icons';
 
 interface Props {
   routeName: string;
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export function TabIcon({ routeName, color, size }: Props) {
-  let iconName: keyof typeof MaterialCommunityIcons.glyphMap;
+  let iconName: MaterialCommunityIconName;
 
   switch (routeName) {
     case 'home':
