@@ -28,6 +28,7 @@ type ConversationViewProps = {
   currentUserId: string | null;
   sendMessage: (friendUid: string, text: string) => Promise<void>;
   markConversationRead: (friendUid: string) => Promise<void>;
+  closeIcon?: "close" | "back";
 };
 
 export default function ConversationView({
@@ -37,12 +38,16 @@ export default function ConversationView({
   currentUserId,
   sendMessage,
   markConversationRead,
+  closeIcon = "close",
 }: ConversationViewProps) {
   const theme = useTheme<AppTheme>();
   const { messages, loading } = useConversation(friend.uid, currentUserId);
   const [messageDraft, setMessageDraft] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);
+  const closeIconName = closeIcon === "back" ? "arrow-left" : "close";
+  const closeLabel =
+    closeIcon === "back" ? "Back to conversations" : "Close conversation";
 
   useEffect(() => {
     void markConversationRead(friend.uid);
@@ -94,7 +99,11 @@ export default function ConversationView({
             </Text>
           </View>
         </View>
-        <IconButton icon="close" onPress={onClose} accessibilityLabel="Close conversation" />
+        <IconButton
+          icon={closeIconName}
+          onPress={onClose}
+          accessibilityLabel={closeLabel}
+        />
       </View>
 
       <KeyboardAvoidingView
