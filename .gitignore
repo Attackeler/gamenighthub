@@ -32,6 +32,9 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env.gamenight-db
 
 # typescript
 *.tsbuildinfo
+
+serviceAccountKey.json

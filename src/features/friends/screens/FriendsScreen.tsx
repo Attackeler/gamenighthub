@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { FlatList, View } from "react-native";
 import {
   ActivityIndicator,
   Avatar,
@@ -16,7 +16,7 @@ import {
 
 import { AppTheme } from "@/app/theme/types";
 import { useUserProfile } from "@/features/profile/context/UserProfileContext";
-import { useConversation } from "@/features/friends/hooks/useConversation";
+import ConversationView from "@/features/friends/components/ConversationView";
 import useAuth from "@/features/auth/hooks/useAuth";
 
 type FeedbackMessage = {
@@ -26,21 +26,27 @@ type FeedbackMessage = {
 
 export default function FriendsScreen() {
   const theme = useTheme<AppTheme>();
-  const { profile, friends, loadingFriends, addFriendByCode, removeFriend, sendMessage } =
+  const { user } = useAuth();
+  const {
+    profile,
+    friends,
+    loadingFriends,
+    incomingFriendRequests,
+    addFriendByCode,
+    removeFriend,
+    sendMessage,
+    markConversationRead,
+  } =
     useUserProfile();
   const [friendCodeInput, setFriendCodeInput] = useState("");
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const [adding, setAdding] = useState(false);
   const [activeFriendId, setActiveFriendId] = useState<string | null>(null);
-  const [messageDraft, setMessageDraft] = useState("");
 
   const activeFriend = useMemo(
     () => friends.find((friend) => friend.uid === activeFriendId) ?? null,
     [friends, activeFriendId],
   );
-
-  const { messages, loading: loadingMessages } = useConversation(activeFriendId);
-  const { user } = useAuth();
 
   const handleAddFriend = async () => {
     if (!friendCodeInput.trim()) return;
@@ -50,7 +56,7 @@ export default function FriendsScreen() {
       await addFriendByCode(friendCodeInput);
       setFeedback({
         tone: "success",
-        text: "Friend added! They can now see you in their list too.",
+        text: "Friend request sent! They'll need to accept before you're connected.",
       });
       setFriendCodeInput("");
     } catch (error) {
@@ -60,22 +66,6 @@ export default function FriendsScreen() {
       setAdding(false);
     }
   };
-
-  const handleSendMessage = async () => {
-    if (!activeFriend) return;
-    const text = messageDraft.trim();
-    if (!text) return;
-    try {
-      await sendMessage(activeFriend.uid, text);
-      setMessageDraft("");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "We couldn't send that message right now.";
-      setFeedback({ tone: "error", text: message });
-    }
-  };
-
-  const scrollViewRef = useRef<ScrollView | null>(null);
 
   const renderFriendItem = ({ item }: { item: typeof friends[number] }) => (
     <Card
@@ -141,6 +131,9 @@ export default function FriendsScreen() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background, padding: 24, gap: 24 }}>
       <View
         style={{
+          alignSelf: "center",
+          width: "100%",
+          maxWidth: 560,
           backgroundColor: theme.colors.surface,
           borderRadius: 16,
           padding: 20,
@@ -181,7 +174,14 @@ export default function FriendsScreen() {
         )}
       </View>
 
-      <View style={{ flex: 1 }}>
+      <View
+        style={{
+          flex: 1,
+          alignSelf: "center",
+          width: "100%",
+          maxWidth: 960,
+        }}
+      >
         <Text variant="titleMedium" style={{ fontWeight: "600", color: theme.colors.onSurface }}>
           Friends
         </Text>
@@ -192,11 +192,15 @@ export default function FriendsScreen() {
         ) : friends.length === 0 ? (
           <View style={{ marginTop: 32, alignItems: "center", gap: 8 }}>
             <Text style={{ color: theme.colors.onSurfaceVariant }}>
-              You haven't added any friends yet.
+              {incomingFriendRequests.length > 0
+                ? "Respond to pending friend requests from the notifications icon to connect."
+                : "You haven't added any friends yet."}
             </Text>
-            <Text style={{ color: theme.colors.onSurfaceVariant }}>
-              Share your ID ({profile?.friendCode ?? "••••••••"}) so others can add you!
-            </Text>
+            {incomingFriendRequests.length === 0 ? (
+              <Text style={{ color: theme.colors.onSurfaceVariant }}>
+                Share your ID ({profile?.friendCode ?? "••••••••"}) so others can add you!
+              </Text>
+            ) : null}
           </View>
         ) : (
           <FlatList
@@ -214,7 +218,6 @@ export default function FriendsScreen() {
           visible={Boolean(activeFriend)}
           onDismiss={() => {
             setActiveFriendId(null);
-            setMessageDraft("");
           }}
           contentContainerStyle={{
             margin: 24,
@@ -224,122 +227,16 @@ export default function FriendsScreen() {
             maxHeight: "80%",
           }}
         >
-          {!activeFriend ? null : (
-            <View style={{ flex: 1 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 12,
-                }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <Avatar.Image
-                    size={40}
-                    source={{
-                      uri: activeFriend.photoURL ?? `https://i.pravatar.cc/100?u=${activeFriend.uid}`,
-                    }}
-                  />
-                  <View>
-                    <Text
-                      variant="titleMedium"
-                      style={{ fontWeight: "600", color: theme.colors.onSurface }}
-                    >
-                      {activeFriend.displayName}
-                    </Text>
-                    <Text style={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}>
-                      ID: {activeFriend.friendCode}
-                    </Text>
-                  </View>
-                </View>
-                <IconButton icon="close" onPress={() => setActiveFriendId(null)} />
-              </View>
-
-              <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-              >
-                <ScrollView
-                  ref={scrollViewRef}
-                  contentContainerStyle={{ paddingVertical: 8, gap: 8 }}
-                  onContentSizeChange={() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
-                  }}
-                >
-                  {loadingMessages && messages.length === 0 ? (
-                    <View style={{ paddingVertical: 24, alignItems: "center" }}>
-                      <ActivityIndicator />
-                    </View>
-                  ) : messages.length === 0 ? (
-                    <Text style={{ color: theme.colors.onSurfaceVariant, textAlign: "center" }}>
-                      Start the conversation with a quick hello!
-                    </Text>
-                  ) : (
-                    messages.map((message) => {
-                      const isMine = message.senderId === user?.uid;
-                      return (
-                        <View
-                          key={message.id}
-                          style={{
-                            alignSelf: isMine ? "flex-end" : "flex-start",
-                            backgroundColor: isMine
-                              ? theme.colors.primary
-                              : theme.colors.surfaceVariant,
-                            paddingVertical: 8,
-                            paddingHorizontal: 12,
-                            borderRadius: 12,
-                            maxWidth: "80%",
-                            gap: 4,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: isMine ? theme.colors.onPrimary : theme.colors.onSurface,
-                            }}
-                          >
-                            {message.text}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              textAlign: "right",
-                              color: isMine ? theme.colors.onPrimary : theme.colors.onSurfaceVariant,
-                            }}
-                          >
-                            {message.createdAt.toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </Text>
-                        </View>
-                      );
-                    })
-                  )}
-                </ScrollView>
-
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-                  <TextInput
-                    mode="outlined"
-                    style={{ flex: 1 }}
-                    placeholder="Message"
-                    value={messageDraft}
-                    onChangeText={setMessageDraft}
-                    multiline
-                    maxLength={500}
-                  />
-                  <Button
-                    mode="contained"
-                    style={{ alignSelf: "center" }}
-                    onPress={handleSendMessage}
-                    disabled={!messageDraft.trim()}
-                  >
-                    Send
-                  </Button>
-                </View>
-              </KeyboardAvoidingView>
-            </View>
-          )}
+          {activeFriend ? (
+            <ConversationView
+              friend={activeFriend}
+              onClose={() => setActiveFriendId(null)}
+              style={{ flex: 1 }}
+              currentUserId={user?.uid ?? null}
+              sendMessage={sendMessage}
+              markConversationRead={markConversationRead}
+            />
+          ) : null}
         </Modal>
       </Portal>
     </View>

@@ -30,7 +30,16 @@ service cloud.firestore {
 
     // Friendships link exactly two players.
     match /friendships/{friendshipId} {
-      allow read: if request.auth != null && request.auth.uid in resource.data.userIds;
+      allow get: if request.auth != null
+        && (
+          resource == null
+            || (
+              resource.data.userIds is list
+              && request.auth.uid in resource.data.userIds
+            )
+        );
+
+      allow list: if request.auth != null;
 
       allow create: if request.auth != null
         && request.resource.data.userIds is list
@@ -39,15 +48,81 @@ service cloud.firestore {
         && request.auth.uid in request.resource.data.userIds;
 
       allow update, delete: if request.auth != null
+        && resource != null
         && request.auth.uid in resource.data.userIds;
+    }
+
+    // Friend requests require approval before becoming friendships.
+    match /friendRequests/{requestId} {
+      function pairKey(uidA, uidB) {
+        return uidA < uidB ? uidA + "_" + uidB : uidB + "_" + uidA;
+      }
+
+      allow get: if request.auth != null
+        && (
+          resource == null
+            || (
+              request.auth.uid == resource.data.senderId
+              || request.auth.uid == resource.data.receiverId
+            )
+        );
+
+      allow list: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId is string
+        && request.resource.data.senderId != request.resource.data.receiverId
+        && request.resource.data.status == "pending"
+        && request.resource.data.pairKey == pairKey(
+          request.resource.data.senderId,
+          request.resource.data.receiverId
+        )
+        && request.resource.id == pairKey(
+          request.resource.data.senderId,
+          request.resource.data.receiverId
+        );
+
+      allow update: if request.auth != null
+        && resource != null
+        && resource.data.status == "pending"
+        && request.resource.data.pairKey == resource.data.pairKey
+        && request.resource.data.senderId == resource.data.senderId
+        && request.resource.data.receiverId == resource.data.receiverId
+        && request.auth.uid == resource.data.receiverId
+        && (
+          request.resource.data.status == "accepted"
+          || request.resource.data.status == "declined"
+        );
+
+      allow delete: if request.auth != null
+        && resource != null
+        && (
+          request.auth.uid == resource.data.senderId
+          || request.auth.uid == resource.data.receiverId
+        );
     }
 
     // Two-player conversations between friends.
     match /conversations/{conversationId} {
-      allow read, update: if request.auth != null
+      allow get: if request.auth != null
+        && (
+          resource == null
+            || (
+              resource.data.userIds is list
+              && request.auth.uid in resource.data.userIds
+            )
+        );
+
+      allow update: if request.auth != null
+        && resource != null
+        && resource.data.userIds is list
         && request.auth.uid in resource.data.userIds;
 
+      allow list: if request.auth != null;
+
       allow create: if request.auth != null
+        && request.resource.data.userIds is list
         && request.auth.uid in request.resource.data.userIds;
 
       match /messages/{messageId} {
@@ -55,7 +130,7 @@ service cloud.firestore {
           return get(/databases/$(database)/documents/conversations/$(conversationId)).data.userIds;
         }
 
-        allow read: if request.auth != null && request.auth.uid in participants();
+        allow get, list: if request.auth != null && request.auth.uid in participants();
 
         allow create: if request.auth != null
           && request.auth.uid in participants()

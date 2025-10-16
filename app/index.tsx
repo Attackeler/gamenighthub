@@ -8,6 +8,7 @@ import Header from '@/app/navigation/header/Header';
 import { AppTheme } from '@/app/theme/types';
 import AuthScreen from '@/features/auth/screens/AuthScreen';
 import useAuth from '@/features/auth/hooks/useAuth';
+import MessagesBubble from '@/features/friends/components/MessagesBubble';
 
 export default function TabLayout() {
   const theme = useTheme<AppTheme>();
@@ -38,7 +39,7 @@ export default function TabLayout() {
         <Header />
       </View>
       <BottomTabs />
+      <MessagesBubble />
     </NavigationIndependentTree>
   );
 }
-

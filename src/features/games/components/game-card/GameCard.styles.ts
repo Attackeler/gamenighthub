@@ -1,6 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { AppTheme } from '@/app/theme/types';
+import { hexToRgba } from '@/shared/utils/color';
 
 export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
   cardHome: {
@@ -162,10 +163,17 @@ export const gameCardStyles = (theme: AppTheme) => StyleSheet.create({
     borderColor: theme.colors.categoryBorder,
     color: theme.colors.categoryText,
     overflow: 'hidden',
-    shadowColor: theme.colors.categoryShadow,
-    shadowOffset: { width: 0, height: 4 }, // stronger shadow
-    shadowOpacity: 0.25,                   // more visible
-    shadowRadius: 8,                       // softer edge
-    elevation: 4,                          // for Android
+    ...(Platform.select({
+      web: {
+        boxShadow: `0 4px 16px ${hexToRgba(theme.colors.categoryShadow, 0.25)}`,
+      },
+      default: {
+        shadowColor: theme.colors.categoryShadow,
+        shadowOffset: { width: 0, height: 4 }, // stronger shadow
+        shadowOpacity: 0.25, // more visible
+        shadowRadius: 8, // softer edge
+        elevation: 4, // for Android
+      },
+    }) ?? {}),
   },
 });

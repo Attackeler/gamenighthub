@@ -1,3 +1,7 @@
+import '@/shared/polyfills/styleSheetWeb';
+import '@/shared/polyfills/pointerEventsWeb';
+import '@/shared/polyfills/paperShadowWeb';
+import '@/shared/polyfills/touchHistoryWeb';
 import 'react-native-get-random-values';
 
 import { ErrorBoundary } from 'expo-router';

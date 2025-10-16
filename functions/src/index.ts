@@ -1,12 +1,85 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import { existsSync, readFileSync } from "fs";
+import path from "path";
 import axios from "axios";
 import type { Request, Response } from "express";
 import { parseStringPromise } from "xml2js";
 import cors from "cors";
 import sgMail from "@sendgrid/mail";
+import fs from "fs";
+import { randomBytes } from "crypto";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-admin.initializeApp();
+function loadEnvFile(fileName: string) {
+  const envPath = path.resolve(__dirname, "..", fileName);
+  if (!existsSync(envPath)) {
+    return;
+  }
+
+  try {
+    const content = readFileSync(envPath, "utf-8");
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) {
+        continue;
+      }
+
+      const equalsIndex = line.indexOf("=");
+      if (equalsIndex === -1) {
+        continue;
+      }
+
+      const key = line.slice(0, equalsIndex).trim();
+      if (!key || process.env[key] !== undefined) {
+        continue;
+      }
+
+      const rawValue = line.slice(equalsIndex + 1).trim();
+      const value = rawValue.replace(/^(["'])(.*)\1$/, "$2");
+      process.env[key] = value;
+    }
+    console.info(`Loaded environment variables from ${envPath}`);
+  } catch (error) {
+    console.warn(`Failed to load environment variables from ${envPath}`, error);
+  }
+}
+
+loadEnvFile(".env.gamenight-db");
+
+const serviceAccountPath = path.join(__dirname, "../serviceAccountKey.json");
+
+if (fs.existsSync(serviceAccountPath)) {
+  const serviceAccount = require(serviceAccountPath);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+} else {
+  // fallback for Firebase hosting/CI where Application Default Credentials exist
+const serviceAccountPath =
+  process.env.GOOGLE_APPLICATION_CREDENTIALS ??
+  path.resolve(__dirname, "../serviceAccountKey.json");
+
+if (serviceAccountPath && existsSync(serviceAccountPath)) {
+  // Use explicit service account credentials when provided.
+  try {
+    const raw = readFileSync(serviceAccountPath, "utf-8");
+    const serviceAccount = JSON.parse(raw) as admin.ServiceAccount;
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (error) {
+    console.warn(
+      `Failed to parse service account at ${serviceAccountPath}. Falling back to default credentials.`,
+      error,
+    );
+    admin.initializeApp();
+  }
+} else {
+  // Fall back to Application Default Credentials (Cloud Functions, etc.).
+  admin.initializeApp();
+}
+}
 const db = admin.firestore();
 
 const corsHandler = cors({ origin: true });
@@ -15,21 +88,16 @@ const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const MAX_RETRY_COUNT = 3;
 const RETRY_DELAY_MS = 2000;
 
-type SendgridConfig = {
-  key?: string;
-  from?: string;
-  name?: string;
-};
-
-const runtimeConfig = functions.config() as { sendgrid?: SendgridConfig };
-const sendgridConfig = runtimeConfig.sendgrid ?? {};
-
 const SENDGRID_API_KEY =
-  process.env.SENDGRID_API_KEY ?? sendgridConfig.key ?? "";
-const SENDGRID_FROM_EMAIL =
-  process.env.SENDGRID_FROM ?? sendgridConfig.from ?? "";
+  process.env.SENDGRID_API_KEY ?? "";
+const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM ?? "";
 const SENDGRID_FROM_NAME =
-  process.env.SENDGRID_FROM_NAME ?? sendgridConfig.name ?? "Game Night Hub";
+  process.env.SENDGRID_FROM_NAME ?? "Game Night Hub";
+
+const SHORT_CODE_COLLECTION = "emailVerificationCodes";
+const SHORT_CODE_LENGTH = 6;
+const SHORT_CODE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const SHORT_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -44,6 +112,99 @@ const isEmailServiceConfigured = Boolean(
 );
 
 type BggThing = Record<string, any>;
+
+function generateShortCode() {
+  const bytes = randomBytes(SHORT_CODE_LENGTH);
+  let code = "";
+  for (let i = 0; i < SHORT_CODE_LENGTH; i += 1) {
+    const index = bytes[i] % SHORT_CODE_ALPHABET.length;
+    code += SHORT_CODE_ALPHABET[index];
+  }
+  return code;
+}
+
+async function createShortVerificationCode(email: string, oobCode: string) {
+  const collectionRef = db.collection(SHORT_CODE_COLLECTION);
+  const now = Date.now();
+  const expiresAt = Timestamp.fromMillis(now + SHORT_CODE_TTL_MS);
+  const payload = {
+    email,
+    oobCode,
+    createdAt: FieldValue.serverTimestamp(),
+    expiresAt,
+  };
+
+  const maxAttempts = 5;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const shortCode = generateShortCode();
+    const docRef = collectionRef.doc(shortCode);
+    try {
+      await docRef.create(payload);
+
+      // Best effort cleanup of older codes for this email
+      try {
+        const existing = await collectionRef.where("email", "==", email).get();
+        const batch = db.batch();
+        existing.docs.forEach((doc) => {
+          if (doc.id !== shortCode) {
+            batch.delete(doc.ref);
+          }
+        });
+        await batch.commit();
+      } catch (cleanupError) {
+        functions.logger.debug("Failed to cleanup old verification codes", cleanupError);
+      }
+
+      return shortCode;
+    } catch (error: any) {
+      if (error?.code === 6 || error?.code === "ALREADY_EXISTS") {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to generate a verification code. Please try again.");
+}
+
+async function resolveShortVerificationCode(
+  shortCodeRaw: string,
+  expectedEmail: string,
+) {
+  const shortCode = shortCodeRaw.trim().toUpperCase();
+  const docRef = db.collection(SHORT_CODE_COLLECTION).doc(shortCode);
+  const snap = await docRef.get();
+  if (!snap.exists) {
+    throw new functions.https.HttpsError("not-found", "Verification code not found.");
+  }
+
+  const data = snap.data() as {
+    email?: string;
+    oobCode?: string;
+    expiresAt?: Timestamp;
+  } | undefined;
+
+  if (!data?.oobCode || !data?.email) {
+    await docRef.delete();
+    throw new functions.https.HttpsError("not-found", "Verification code is invalid.");
+  }
+
+  if (data.email.toLowerCase() !== expectedEmail.toLowerCase()) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Verification code does not belong to this account.",
+    );
+  }
+
+  const expiresAtMillis = data.expiresAt?.toMillis();
+  if (expiresAtMillis && expiresAtMillis < Date.now()) {
+    await docRef.delete();
+    throw new functions.https.HttpsError("deadline-exceeded", "Verification code expired.");
+  }
+
+  await docRef.delete();
+  return data.oobCode;
+}
 
 const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -192,13 +353,13 @@ export const bggSearch = functions.https.onRequest(
   }),
 );
 
-function buildVerificationEmailHtml(link: string, code: string, email: string) {
+function buildVerificationEmailHtml(link: string, displayCode: string, email: string) {
   return `
     <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111827;">
       <h2 style="color:#6C47FF;">Verify your Game Night Hub email</h2>
       <p>Thanks for joining Game Night Hub! Use the code below to verify <strong>${email}</strong>.</p>
       <p style="font-size: 32px; letter-spacing: 4px; font-weight: 700; color:#111827; margin: 16px 0;">
-        ${code}
+        ${displayCode}
       </p>
       <p>You can also verify instantly by clicking the button:</p>
       <p>
@@ -229,7 +390,7 @@ function buildVerificationEmailHtml(link: string, code: string, email: string) {
 async function deliverVerificationEmail(
   email: string,
   link: string,
-  code: string,
+  displayCode: string,
 ) {
   if (!isEmailServiceConfigured) {
     throw new Error(
@@ -246,14 +407,14 @@ async function deliverVerificationEmail(
     subject: "Verify your Game Night Hub email",
     text: [
       "Thanks for joining Game Night Hub!",
-      `Your verification code is: ${code}`,
+      `Your verification code is: ${displayCode}`,
       "",
       "You can also verify instantly using this link:",
       link,
       "",
       "If you didn't request this email, you can safely ignore it.",
     ].join("\n"),
-    html: buildVerificationEmailHtml(link, code, email),
+    html: buildVerificationEmailHtml(link, displayCode, email),
   });
 }
 
@@ -319,15 +480,75 @@ export const sendVerificationEmail = functions.https.onRequest(
       const link = await admin
         .auth()
         .generateEmailVerificationLink(targetEmail);
-      const code = extractVerificationCode(link);
+      const oobCode = extractVerificationCode(link);
+      const displayCode = await createShortVerificationCode(targetEmail, oobCode);
 
-      await deliverVerificationEmail(targetEmail, link, code);
+      await deliverVerificationEmail(targetEmail, link, displayCode);
 
       res.json({ success: true });
     } catch (error: unknown) {
       functions.logger.error("sendVerificationEmail failed", error);
       const message =
         error instanceof Error ? error.message : "Failed to send verification email.";
+      res.status(500).json({ error: message });
+    }
+  }),
+);
+
+
+export const exchangeVerificationCode = functions.https.onRequest(
+  withCors(async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method not allowed' });
+      return;
+    }
+
+    const authHeader = req.headers.authorization ?? '';
+    if (!authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Missing or invalid Authorization header' });
+      return;
+    }
+
+    const idToken = authHeader.slice('Bearer '.length).trim();
+    if (!idToken) {
+      res.status(401).json({ error: 'Missing ID token' });
+      return;
+    }
+
+    const codeRaw = typeof req.body?.code === 'string' ? req.body.code.trim() : '';
+    if (!codeRaw) {
+      res.status(400).json({ error: 'Verification code is required.' });
+      return;
+    }
+
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      const userRecord = await admin.auth().getUser(decoded.uid);
+
+      if (!userRecord.email) {
+        res.status(400).json({ error: 'Authenticated user does not have an email address.' });
+        return;
+      }
+
+      let resolvedCode = codeRaw;
+      if (codeRaw.length <= 16) {
+        resolvedCode = await resolveShortVerificationCode(codeRaw, userRecord.email);
+      }
+
+      res.json({ oobCode: resolvedCode });
+    } catch (error: any) {
+      functions.logger.error('exchangeVerificationCode failed', error);
+      if (error instanceof functions.https.HttpsError) {
+        const statusMap: Record<string, number> = {
+          'not-found': 404,
+          'permission-denied': 403,
+          'deadline-exceeded': 410,
+        };
+        const status = statusMap[error.code] ?? 400;
+        res.status(status).json({ error: error.message });
+        return;
+      }
+      const message = error instanceof Error ? error.message : 'Failed to resolve verification code.';
       res.status(500).json({ error: message });
     }
   }),

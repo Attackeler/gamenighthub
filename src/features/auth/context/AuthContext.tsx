@@ -57,6 +57,43 @@ const FUNCTIONS_BASE_URL =
       ? rawFunctionsBaseUrl.slice(0, -1)
       : rawFunctionsBaseUrl;
 
+
+async function exchangeVerificationCodeRequest(idToken: string, code: string) {
+  if (!FUNCTIONS_BASE_URL) {
+    throw new Error(
+      "Verification service is not configured. Set EXPO_PUBLIC_FUNCTIONS_URL.",
+    );
+  }
+
+  const response = await fetch(`${FUNCTIONS_BASE_URL}/exchangeVerificationCode`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ code }),
+  });
+
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    // ignore JSON parse errors from empty bodies
+  }
+
+  if (!response.ok) {
+    const message =
+      typeof data?.error === "string" ? data.error : "Invalid verification code.";
+    throw new Error(message);
+  }
+
+  if (!data?.oobCode || typeof data.oobCode !== "string") {
+    throw new Error("Verification service returned an invalid response.");
+  }
+
+  return data.oobCode as string;
+}
+
 async function requestVerificationEmail(idToken: string, email: string) {
   if (!FUNCTIONS_BASE_URL) {
     throw new Error(
@@ -182,7 +219,7 @@ export function AuthProvider({ children }: Props) {
           setPendingVerificationEmail(targetEmail);
           setVerificationStatus("sent");
           throw new Error(
-            "We sent a verification code to your email. Paste it below to finish setting up your account.",
+            "We emailed you a 6-character verification code. Enter it below to finish setting up your account.",
           );
         }
 
@@ -221,8 +258,16 @@ export function AuthProvider({ children }: Props) {
         if (!trimmedCode) {
           throw new Error("Enter the verification code that was emailed to you.");
         }
+        let resolvedCode = trimmedCode;
+        const user = auth.currentUser;
+        const shouldResolve = Boolean(FUNCTIONS_BASE_URL && user && trimmedCode.length <= 16);
 
-        await applyActionCode(auth, trimmedCode);
+        if (shouldResolve) {
+          const idToken = await user!.getIdToken(true);
+          resolvedCode = await exchangeVerificationCodeRequest(idToken, trimmedCode);
+        }
+
+        await applyActionCode(auth, resolvedCode);
         if (auth.currentUser) {
           await reload(auth.currentUser);
         }
@@ -286,7 +331,7 @@ export function AuthProvider({ children }: Props) {
         setPendingVerificationEmail(targetEmail);
         setVerificationStatus("sent");
         throw new Error(
-          "We sent a verification code to your Google email. Paste it below to finish signing in.",
+          "We emailed a 6-character verification code to your Google account. Enter it below to finish signing in.",
         );
       }
 

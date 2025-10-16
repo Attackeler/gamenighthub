@@ -36,24 +36,91 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bggThing = exports.sendVerificationEmail = exports.bggSearch = void 0;
+exports.bggThing = exports.exchangeVerificationCode = exports.sendVerificationEmail = exports.bggSearch = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
+const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
 const axios_1 = __importDefault(require("axios"));
 const xml2js_1 = require("xml2js");
 const cors_1 = __importDefault(require("cors"));
 const mail_1 = __importDefault(require("@sendgrid/mail"));
-admin.initializeApp();
+const fs_2 = __importDefault(require("fs"));
+const crypto_1 = require("crypto");
+const firestore_1 = require("firebase-admin/firestore");
+function loadEnvFile(fileName) {
+    const envPath = path_1.default.resolve(__dirname, "..", fileName);
+    if (!(0, fs_1.existsSync)(envPath)) {
+        return;
+    }
+    try {
+        const content = (0, fs_1.readFileSync)(envPath, "utf-8");
+        for (const line of content.split(/\r?\n/)) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith("#")) {
+                continue;
+            }
+            const equalsIndex = line.indexOf("=");
+            if (equalsIndex === -1) {
+                continue;
+            }
+            const key = line.slice(0, equalsIndex).trim();
+            if (!key || process.env[key] !== undefined) {
+                continue;
+            }
+            const rawValue = line.slice(equalsIndex + 1).trim();
+            const value = rawValue.replace(/^(["'])(.*)\1$/, "$2");
+            process.env[key] = value;
+        }
+        console.info(`Loaded environment variables from ${envPath}`);
+    }
+    catch (error) {
+        console.warn(`Failed to load environment variables from ${envPath}`, error);
+    }
+}
+loadEnvFile(".env.gamenight-db");
+const serviceAccountPath = path_1.default.join(__dirname, "../serviceAccountKey.json");
+if (fs_2.default.existsSync(serviceAccountPath)) {
+    const serviceAccount = require(serviceAccountPath);
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+    });
+}
+else {
+    // fallback for Firebase hosting/CI where Application Default Credentials exist
+    const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ??
+        path_1.default.resolve(__dirname, "../serviceAccountKey.json");
+    if (serviceAccountPath && (0, fs_1.existsSync)(serviceAccountPath)) {
+        // Use explicit service account credentials when provided.
+        try {
+            const raw = (0, fs_1.readFileSync)(serviceAccountPath, "utf-8");
+            const serviceAccount = JSON.parse(raw);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+        }
+        catch (error) {
+            console.warn(`Failed to parse service account at ${serviceAccountPath}. Falling back to default credentials.`, error);
+            admin.initializeApp();
+        }
+    }
+    else {
+        // Fall back to Application Default Credentials (Cloud Functions, etc.).
+        admin.initializeApp();
+    }
+}
 const db = admin.firestore();
 const corsHandler = (0, cors_1.default)({ origin: true });
 const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const MAX_RETRY_COUNT = 3;
 const RETRY_DELAY_MS = 2000;
-const runtimeConfig = functions.config();
-const sendgridConfig = runtimeConfig.sendgrid ?? {};
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY ?? sendgridConfig.key ?? "";
-const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM ?? sendgridConfig.from ?? "";
-const SENDGRID_FROM_NAME = process.env.SENDGRID_FROM_NAME ?? sendgridConfig.name ?? "Game Night Hub";
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY ?? "";
+const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM ?? "";
+const SENDGRID_FROM_NAME = process.env.SENDGRID_FROM_NAME ?? "Game Night Hub";
+const SHORT_CODE_COLLECTION = "emailVerificationCodes";
+const SHORT_CODE_LENGTH = 6;
+const SHORT_CODE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const SHORT_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 if (SENDGRID_API_KEY) {
     mail_1.default.setApiKey(SENDGRID_API_KEY);
 }
@@ -61,6 +128,79 @@ else {
     functions.logger.warn("SendGrid API key is not configured. sendVerificationEmail will fail until it is set.");
 }
 const isEmailServiceConfigured = Boolean(SENDGRID_API_KEY && SENDGRID_FROM_EMAIL);
+function generateShortCode() {
+    const bytes = (0, crypto_1.randomBytes)(SHORT_CODE_LENGTH);
+    let code = "";
+    for (let i = 0; i < SHORT_CODE_LENGTH; i += 1) {
+        const index = bytes[i] % SHORT_CODE_ALPHABET.length;
+        code += SHORT_CODE_ALPHABET[index];
+    }
+    return code;
+}
+async function createShortVerificationCode(email, oobCode) {
+    const collectionRef = db.collection(SHORT_CODE_COLLECTION);
+    const now = Date.now();
+    const expiresAt = firestore_1.Timestamp.fromMillis(now + SHORT_CODE_TTL_MS);
+    const payload = {
+        email,
+        oobCode,
+        createdAt: firestore_1.FieldValue.serverTimestamp(),
+        expiresAt,
+    };
+    const maxAttempts = 5;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        const shortCode = generateShortCode();
+        const docRef = collectionRef.doc(shortCode);
+        try {
+            await docRef.create(payload);
+            // Best effort cleanup of older codes for this email
+            try {
+                const existing = await collectionRef.where("email", "==", email).get();
+                const batch = db.batch();
+                existing.docs.forEach((doc) => {
+                    if (doc.id !== shortCode) {
+                        batch.delete(doc.ref);
+                    }
+                });
+                await batch.commit();
+            }
+            catch (cleanupError) {
+                functions.logger.debug("Failed to cleanup old verification codes", cleanupError);
+            }
+            return shortCode;
+        }
+        catch (error) {
+            if (error?.code === 6 || error?.code === "ALREADY_EXISTS") {
+                continue;
+            }
+            throw error;
+        }
+    }
+    throw new Error("Failed to generate a verification code. Please try again.");
+}
+async function resolveShortVerificationCode(shortCodeRaw, expectedEmail) {
+    const shortCode = shortCodeRaw.trim().toUpperCase();
+    const docRef = db.collection(SHORT_CODE_COLLECTION).doc(shortCode);
+    const snap = await docRef.get();
+    if (!snap.exists) {
+        throw new functions.https.HttpsError("not-found", "Verification code not found.");
+    }
+    const data = snap.data();
+    if (!data?.oobCode || !data?.email) {
+        await docRef.delete();
+        throw new functions.https.HttpsError("not-found", "Verification code is invalid.");
+    }
+    if (data.email.toLowerCase() !== expectedEmail.toLowerCase()) {
+        throw new functions.https.HttpsError("permission-denied", "Verification code does not belong to this account.");
+    }
+    const expiresAtMillis = data.expiresAt?.toMillis();
+    if (expiresAtMillis && expiresAtMillis < Date.now()) {
+        await docRef.delete();
+        throw new functions.https.HttpsError("deadline-exceeded", "Verification code expired.");
+    }
+    await docRef.delete();
+    return data.oobCode;
+}
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function fetchXmlWithRetry(url, attempt = 0) {
     const response = await axios_1.default.get(url, { timeout: 20000 });
@@ -168,13 +308,13 @@ exports.bggSearch = functions.https.onRequest(withCors(async (req, res) => {
         res.status(500).json({ error: error.message ?? "Search failed" });
     }
 }));
-function buildVerificationEmailHtml(link, code, email) {
+function buildVerificationEmailHtml(link, displayCode, email) {
     return `
     <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111827;">
       <h2 style="color:#6C47FF;">Verify your Game Night Hub email</h2>
       <p>Thanks for joining Game Night Hub! Use the code below to verify <strong>${email}</strong>.</p>
       <p style="font-size: 32px; letter-spacing: 4px; font-weight: 700; color:#111827; margin: 16px 0;">
-        ${code}
+        ${displayCode}
       </p>
       <p>You can also verify instantly by clicking the button:</p>
       <p>
@@ -201,7 +341,7 @@ function buildVerificationEmailHtml(link, code, email) {
     </div>
   `;
 }
-async function deliverVerificationEmail(email, link, code) {
+async function deliverVerificationEmail(email, link, displayCode) {
     if (!isEmailServiceConfigured) {
         throw new Error("Email service is not configured. Set SENDGRID_API_KEY and SENDGRID_FROM.");
     }
@@ -214,14 +354,14 @@ async function deliverVerificationEmail(email, link, code) {
         subject: "Verify your Game Night Hub email",
         text: [
             "Thanks for joining Game Night Hub!",
-            `Your verification code is: ${code}`,
+            `Your verification code is: ${displayCode}`,
             "",
             "You can also verify instantly using this link:",
             link,
             "",
             "If you didn't request this email, you can safely ignore it.",
         ].join("\n"),
-        html: buildVerificationEmailHtml(link, code, email),
+        html: buildVerificationEmailHtml(link, displayCode, email),
     });
 }
 function extractVerificationCode(link) {
@@ -273,13 +413,63 @@ exports.sendVerificationEmail = functions.https.onRequest(withCors(async (req, r
         const link = await admin
             .auth()
             .generateEmailVerificationLink(targetEmail);
-        const code = extractVerificationCode(link);
-        await deliverVerificationEmail(targetEmail, link, code);
+        const oobCode = extractVerificationCode(link);
+        const displayCode = await createShortVerificationCode(targetEmail, oobCode);
+        await deliverVerificationEmail(targetEmail, link, displayCode);
         res.json({ success: true });
     }
     catch (error) {
         functions.logger.error("sendVerificationEmail failed", error);
         const message = error instanceof Error ? error.message : "Failed to send verification email.";
+        res.status(500).json({ error: message });
+    }
+}));
+exports.exchangeVerificationCode = functions.https.onRequest(withCors(async (req, res) => {
+    if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
+    const authHeader = req.headers.authorization ?? '';
+    if (!authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing or invalid Authorization header' });
+        return;
+    }
+    const idToken = authHeader.slice('Bearer '.length).trim();
+    if (!idToken) {
+        res.status(401).json({ error: 'Missing ID token' });
+        return;
+    }
+    const codeRaw = typeof req.body?.code === 'string' ? req.body.code.trim() : '';
+    if (!codeRaw) {
+        res.status(400).json({ error: 'Verification code is required.' });
+        return;
+    }
+    try {
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        const userRecord = await admin.auth().getUser(decoded.uid);
+        if (!userRecord.email) {
+            res.status(400).json({ error: 'Authenticated user does not have an email address.' });
+            return;
+        }
+        let resolvedCode = codeRaw;
+        if (codeRaw.length <= 16) {
+            resolvedCode = await resolveShortVerificationCode(codeRaw, userRecord.email);
+        }
+        res.json({ oobCode: resolvedCode });
+    }
+    catch (error) {
+        functions.logger.error('exchangeVerificationCode failed', error);
+        if (error instanceof functions.https.HttpsError) {
+            const statusMap = {
+                'not-found': 404,
+                'permission-denied': 403,
+                'deadline-exceeded': 410,
+            };
+            const status = statusMap[error.code] ?? 400;
+            res.status(status).json({ error: error.message });
+            return;
+        }
+        const message = error instanceof Error ? error.message : 'Failed to resolve verification code.';
         res.status(500).json({ error: message });
     }
 }));

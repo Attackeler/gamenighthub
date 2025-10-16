@@ -17,6 +17,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@/shared/icons";
+import { hexToRgba } from "@/shared/utils/color";
 
 import useAuth from "../hooks/useAuth";
 import { AppTheme } from "@/app/theme/types";
@@ -77,6 +78,23 @@ export default function AuthScreen() {
   const [verificationCode, setVerificationCode] = useState("");
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
+  const heroShadowStyle = useMemo(
+    () =>
+      Platform.select({
+        web: {
+          boxShadow: `0 8px 24px ${hexToRgba(theme.colors.primary, 0.25)}`,
+        },
+        default: {
+          shadowColor: theme.colors.primary,
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 6,
+        },
+      }),
+    [theme.colors.primary],
+  );
+
   const canSubmit = useMemo(() => {
     if (!email.trim() || !password.trim()) return false;
     if (mode === "signUp" && password !== confirmPassword) return false;
@@ -98,7 +116,7 @@ export default function AuthScreen() {
         ) {
           return current;
         }
-        return `We sent a verification code to ${pendingVerificationEmail}. Paste it below to verify your email.`;
+        return `We sent a 6-character verification code to ${pendingVerificationEmail}. Enter it below to verify your email.`;
       });
     }
   }, [pendingVerificationEmail, verificationStatus]);
@@ -120,7 +138,7 @@ export default function AuthScreen() {
       if (success) {
         const targetEmail = email.trim();
         setInfoMessage(
-          `We sent a verification code to ${targetEmail}. Paste it below to verify your email.`,
+          `We sent a 6-character verification code to ${targetEmail}. Enter it below to verify your email.`,
         );
         setVerificationCode("");
       }
@@ -228,11 +246,7 @@ export default function AuthScreen() {
             backgroundColor: theme.colors.primary,
             alignItems: "center",
             justifyContent: "center",
-            shadowColor: theme.colors.primary,
-            shadowOpacity: 0.25,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 8 },
-            elevation: 6,
+            ...(heroShadowStyle ?? {}),
           }}
         >
           <MaterialCommunityIcons
@@ -264,55 +278,59 @@ export default function AuthScreen() {
           </Text>
         </View>
 
-        <Card
-          mode="elevated"
-          style={{
-            width: "100%",
-            maxWidth: 520,
-            paddingVertical: 12,
-            paddingHorizontal: 20,
-            borderRadius: 20,
-            backgroundColor: theme.colors.surface,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: theme.colors.outline,
-          }}
-        >
-          {FEATURE_ITEMS.map((item, index) => (
-            <View
-              key={item.title}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 12,
-                borderBottomWidth:
-                  index === FEATURE_ITEMS.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                borderBottomColor: theme.colors.outline,
-                gap: 16,
-              }}
-            >
+        {!showEmailForm && (
+          <Card
+            mode="elevated"
+            style={{
+              width: "100%",
+              maxWidth: 520,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 20,
+              backgroundColor: theme.colors.surface,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: theme.colors.outline,
+            }}
+          >
+            {FEATURE_ITEMS.map((item, index) => (
               <View
+                key={item.title}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: `${item.iconColor}22`,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
+                  paddingVertical: 12,
+                  borderBottomWidth:
+                    index === FEATURE_ITEMS.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                  borderBottomColor: theme.colors.outline,
+                  gap: 16,
                 }}
               >
-                <MaterialCommunityIcons name={item.icon} size={20} color={item.iconColor} />
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: `${item.iconColor}22`,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <MaterialCommunityIcons name={item.icon} size={20} color={item.iconColor} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: "600", color: theme.colors.onSurface }}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={{ color: theme.colors.onSurfaceVariant, fontSize: 13, marginTop: 2 }}
+                  >
+                    {item.description}
+                  </Text>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: "600", color: theme.colors.onSurface }}>
-                  {item.title}
-                </Text>
-                <Text style={{ color: theme.colors.onSurfaceVariant, fontSize: 13, marginTop: 2 }}>
-                  {item.description}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </Card>
+            ))}
+          </Card>
+        )}
 
         <View style={{ width: "100%", maxWidth: 520, gap: 12 }}>
           {!showEmailForm ? (
@@ -422,7 +440,7 @@ export default function AuthScreen() {
               }}
             >
               <Text style={{ color: theme.colors.onSurface }}>
-                Enter the verification code we emailed to
+                Enter the 6-character code we emailed to
                 {pendingVerificationEmail ? ` ${pendingVerificationEmail}` : " your inbox"}.
               </Text>
               <TextInput
@@ -460,17 +478,19 @@ export default function AuthScreen() {
             </Card>
           )}
 
-          <View style={{ gap: 10, marginTop: showEmailForm ? 12 : 4 }}>
-            <Button
-              mode="outlined"
-              disabled={loading}
-              icon="google"
-              onPress={signInWithGoogle}
-              textColor={theme.colors.onSurface}
-            >
-              Continue with Google
-            </Button>
-          </View>
+          {showEmailForm && (
+            <View style={{ gap: 10, marginTop: 12 }}>
+              <Button
+                mode="outlined"
+                disabled={loading}
+                icon="google"
+                onPress={signInWithGoogle}
+                textColor={theme.colors.onSurface}
+              >
+                Continue with Google
+              </Button>
+            </View>
+          )}
 
           {infoMessage && (
             <Text style={{ color: theme.colors.primary, textAlign: "center" }}>
@@ -498,4 +518,5 @@ export default function AuthScreen() {
     </KeyboardAvoidingView>
   );
 }
+
 
